@@ -1,0 +1,65 @@
+
+> hackathon-platform@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.4 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+- Environments: .env
+✓ Ready in 890ms
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+
+○ Compiling /_not-found/page ...
+ GET /api/events 404 in 4.0s (next.js: 3.8s, application-code: 254ms)
+ GET /api/events 404 in 66ms (next.js: 7ms, application-code: 59ms)
+prisma:query SELECT "public"."Event"."id", "public"."Event"."name", "public"."Event"."formTemplateId", "public"."Event"."certificateTemplateId", "public"."Event"."startDate", "public"."Event"."endDate" FROM "public"."Event" WHERE 1=1 ORDER BY "public"."Event"."startDate" DESC OFFSET $1
+ GET /api/events 200 in 2.9s (next.js: 550ms, application-code: 2.3s)
+prisma:query SELECT 1
+prisma:query SELECT "public"."UserSubmission"."id", "public"."UserSubmission"."name", "public"."UserSubmission"."email", "public"."UserSubmission"."phone", "public"."UserSubmission"."eventId", "public"."UserSubmission"."reviewImageUrl", "public"."UserSubmission"."extractedText", "public"."UserSubmission"."reviewLink", "public"."UserSubmission"."verificationScore", "public"."UserSubmission"."status", "public"."UserSubmission"."socialLinks", "public"."UserSubmission"."createdAt" FROM "public"."UserSubmission" WHERE ("public"."UserSubmission"."email" = $1 AND "public"."UserSubmission"."eventId" = $2) LIMIT $3 OFFSET $4
+Error: Cannot find module '/ROOT/node_modules/tesseract.js/src/worker-script/node/index.js'
+    at ignore-listed frames {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: []
+}
+⨯ uncaughtException: Error: Cannot find module '/ROOT/node_modules/tesseract.js/src/worker-script/node/index.js'
+    at ignore-listed frames {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: []
+}
+⨯ uncaughtException:  Error: Cannot find module '/ROOT/node_modules/tesseract.js/src/worker-script/node/index.js'
+    at ignore-listed frames {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: []
+}
+ POST /api/submissions 200 in 6.4min (next.js: 1650ms, application-code: 6.3min)
+prisma:query SELECT "public"."UserSubmission"."id", "public"."UserSubmission"."name", "public"."UserSubmission"."email", "public"."UserSubmission"."phone", "public"."UserSubmission"."eventId", "public"."UserSubmission"."reviewImageUrl", "public"."UserSubmission"."extractedText", "public"."UserSubmission"."reviewLink", "public"."UserSubmission"."verificationScore", "public"."UserSubmission"."status", "public"."UserSubmission"."socialLinks", "public"."UserSubmission"."createdAt" FROM "public"."UserSubmission" WHERE ("public"."UserSubmission"."email" = $1 AND "public"."UserSubmission"."eventId" = $2) LIMIT $3 OFFSET $4
+Error: Cannot find module '/ROOT/node_modules/tesseract.js/src/worker-script/node/index.js'
+    at ignore-listed frames {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: []
+}
+⨯ uncaughtException: Error: Cannot find module '/ROOT/node_modules/tesseract.js/src/worker-script/node/index.js'
+    at ignore-listed frames {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: []
+}
+⨯ uncaughtException:  Error: Cannot find module '/ROOT/node_modules/tesseract.js/src/worker-script/node/index.js'
+    at ignore-listed frames {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: []
+}
+✓ Compiled in 100ms
+⚠ Found a change in next.config.ts. Restarting the server to apply the changes...
+▲ Next.js 16.2.4 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+- Environments: .env
+✓ Ready in 1230ms
+- Experiments (use with caution):
+  · serverActions
+
+[?25h
