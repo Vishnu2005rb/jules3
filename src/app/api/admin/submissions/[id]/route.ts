@@ -23,7 +23,13 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const submission = await prisma.userSubmission.update({
       where: { id },
       data: { status: status.toLowerCase() },
-      include: { event: true }
+      include: {
+        event: {
+          include: {
+            certificateTemplate: true
+          }
+        }
+      }
     });
 
     if (status.toLowerCase() === 'approved') {

@@ -1,144 +1,116 @@
-# AI-Powered Hackathon Certificate & Review Verification Platform
+# CertiVerify AI: Advanced Hackathon Verification Platform
 
-A production-ready, scalable web application for hackathons to automate project review verification and certificate issuance using OCR and dynamic PDF generation.
-
-## 🚀 Features
-
-- **Multi-step Submission:** Easy user flow for details, image upload, and status tracking.
-- **AI-Powered OCR:** Automated text extraction from review screenshots using Tesseract.js.
-- **Intelligent Scoring:** Automated verification scoring (0-100) with fraud detection.
-- **Auto-Approval:** Submissions with high scores are automatically approved and certified.
-- **Dynamic Certificates:** Instant PDF generation with unique QR codes for public verification.
-- **Admin Dashboard:** Comprehensive management of events, submissions, and analytics.
-- **Secure Auth:** JWT-based session management for admin routes.
-- **Modern UI:** Responsive, SaaS-style purple/blue gradient theme using Tailwind CSS.
-
-## 🛠️ Tech Stack
-
-- **Framework:** Next.js (App Router)
-- **Language:** TypeScript
-- **Database:** PostgreSQL (Aiven/Supabase)
-- **ORM:** Prisma
-- **Auth:** JWT / jose
-- **OCR:** Tesseract.js
-- **PDF:** pdf-lib & qrcode
-- **Email:** Nodemailer (SMTP)
-- **Styling:** Tailwind CSS
+A premium, production-ready SaaS application for hackathons that automates the verification of participant project reviews and issues cryptographic, tamper-proof certificates.
 
 ---
 
-## 💻 Local Development Setup (VS Code)
+## 🎨 Modern Premium UI
+- **Visual Excellence**: Dark-themed, glassmorphism UI with neon purple/blue glowing effects.
+- **Fluid UX**: Staggered entry animations, smooth transitions, and hover-reactive elements powered by Framer Motion.
+- **Design Studio**: Integrated visual builders for custom submission forms and certificate layouts.
 
-Follow these steps to get the project running on your local machine:
-
-### 1. Prerequisites
-- [Node.js](https://nodejs.org/) (v18.x or higher)
-- [Git](https://git-scm.com/)
-- A PostgreSQL database (e.g., [Aiven](https://aiven.io/) or local)
-- SMTP credentials (e.g., [Gmail App Password](https://support.google.com/accounts/answer/185833))
-
-### 2. Clone the Repository
-```bash
-git clone <repository-url>
-cd hackathon-platform
-```
-
-### 3. Install Dependencies
-Open your VS Code terminal and run:
-```bash
-npm install
-```
-
-### 4. Environment Configuration
-Create a `.env` file in the **project root directory** (the same folder where `package.json` and `README.md` are located).
-
-Copy the contents of `.env.example` into your new `.env` file and fill in your credentials:
-
-```env
-# Database
-DATABASE_URL="postgresql://user:password@host:port/database?sslmode=require"
-
-# Auth
-JWT_SECRET="your-super-secret-key-change-this"
-
-# Email (SMTP)
-SMTP_HOST="smtp.gmail.com"
-SMTP_PORT=465
-SMTP_USER="your-email@gmail.com"
-SMTP_PASS="your-app-password"
-
-# App
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
-```
-
-### 5. Database Setup
-Sync your database schema with Prisma:
-```bash
-npx prisma db push
-```
-
-### 6. Start the Development Server
-```bash
-npm run dev
-```
-The app will be available at `http://localhost:3000`.
+## 🚀 Intelligent Core Features
+- **AI-Powered OCR**: Automated text extraction and validation from review screenshots.
+- **Cryptographic Trust**: Certificates feature unique Ledger IDs and QR codes for instant public verification.
+- **Fraud Intelligence**: Image hashing (SHA-256) and similarity checks to prevent duplicate claims.
+- **Automated Workflow**: Real-time scoring and instant dispatch of high-quality PDFs via SMTP.
 
 ---
 
-## 🧪 Testing the Flow
+## 💻 VS Code Step-by-Step Installation Guide
 
-1. **Admin Setup:**
-   - Go to `/admin/login`.
-   - Use `admin` / `password123` (Note: Ensure the Admin user exists in the DB via seed or manual insert).
-   - Create an Event in the "Event Manager" section.
+Follow these instructions to set up the CertiVerify AI platform on your local machine using Visual Studio Code.
 
-2. **User Submission:**
-   - Go to `/submit`.
-   - Fill in details and upload a screenshot containing the event name.
-   - The system will run OCR and provide an instant score.
+### 1. Initial Setup
+*   **Install Node.js**: Ensure you have [Node.js (v20+)](https://nodejs.org/) installed.
+*   **VS Code Extensions**: (Recommended) Install the **Prisma** and **Tailwind CSS IntelliSense** extensions.
 
-3. **Verification:**
-   - Go to `/verify`.
-   - Enter a Certificate ID or scan the QR code from a generated PDF.
+### 2. Project Initialization
+1.  **Open VS Code** and use the terminal (`Ctrl+` or `Cmd+`):
+    ```bash
+    git clone <repository-url>
+    cd hackathon-platform
+    ```
+2.  **Install Dependencies**:
+    ```bash
+    npm install
+    ```
+
+### 3. Environment Configuration
+1.  In the VS Code explorer, create a new file named **`.env`** in the project's root folder.
+2.  Paste and configure the following required variables:
+    ```env
+    # 🗄️ Database (PostgreSQL)
+    DATABASE_URL="postgresql://user:password@host:port/db_name?sslmode=require"
+
+    # 🔐 Security
+    JWT_SECRET="your_secure_random_string_here"
+
+    # 📧 Email Delivery (SMTP)
+    SMTP_HOST="smtp.gmail.com"
+    SMTP_PORT=465
+    SMTP_USER="your-email@gmail.com"
+    SMTP_PASS="your-app-specific-password"
+    SMTP_FROM="Certificates <certificates@yourdomain.com>"
+
+    # 🌐 Application
+    NEXT_PUBLIC_APP_URL="http://localhost:3000"
+    ```
+
+### 4. Database Orchestration
+1.  **Sync Schema**: Apply the Prisma schema to your PostgreSQL instance:
+    ```bash
+    npx prisma db push
+    ```
+2.  **Seed Admin Account**: Create the default administrator account:
+    ```bash
+    node seed.mjs
+    ```
+    *Credentials: Username: `admin` | Password: `admin123`*
+
+### 5. Launch the Platform
+1.  **Start Dev Server**:
+    ```bash
+    npm run dev
+    ```
+2.  **Access Port**: Open your browser to **`http://localhost:3000`**.
+
+---
+
+## 🔐 Admin & Management Flow
+
+1.  **Authentication**: Navigate to `/admin/login` and enter the credentials from the seeding step.
+2.  **Design Layouts**: Use the **Design Studio** (Template Manager) to build custom submission protocols and certificate blueprints.
+3.  **Deploy Events**: In the **Event Controller**, create a new event and link your designed templates.
+4.  **Monitor Intelligence**: Access the **Admin Dashboard** to view real-time AI scores, OCR outputs, and manage approval overrides.
 
 ---
 
 ## 🛠️ Troubleshooting
 
-### Prisma Client Error
-If you see `@prisma/client did not initialize yet`, run:
-```bash
-npx prisma generate
-```
-This error usually happens if the environment hasn't been synced with the database schema yet.
-
-### Database Connection Issues
-Ensure your `DATABASE_URL` in the `.env` file is correct and accessible. If using a cloud provider like Aiven or Supabase, make sure the `sslmode=require` (or `no-verify` depending on setup) parameter is included.
+| Issue | Resolution |
+| :--- | :--- |
+| **Prisma Not Initialized** | Run `npx prisma generate` to rebuild the client. |
+| **Authentication Loops** | Ensure `JWT_SECRET` is set in `.env` and restart the server. |
+| **Email Not Sending** | Verify SMTP credentials and ensure "Less Secure Apps" or "App Passwords" are enabled for Gmail. |
+| **OCR Accuracy** | Ensure uploaded screenshots are clear and contain the exact event keywords defined in the Event settings. |
 
 ---
 
-## 📂 Project Structure
-
-A visual guide to where your files (including `.env`) should be located:
+## 📂 Visual Project Map
 
 ```text
 hackathon-platform/
-├── prisma/               # Database schema
-├── public/               # Static assets
-├── src/                  # Source code
-│   ├── app/              # Pages & API routes
-│   └── lib/              # Core business logic
-├── .env                  # <--- CREATE THIS FILE HERE
-├── .env.example          # Template for .env
-├── package.json          # Project dependencies
-├── prisma.config.ts      # Prisma configuration
-└── README.md             # This file
+├── src/
+│   ├── app/              # UI Components, Layouts, and API Logic
+│   └── lib/              # AI (OCR), PDF Engine, and Security Logic
+├── prisma/               # Database Schema (schema.prisma)
+├── public/               # Global static assets
+├── seed.mjs              # Admin initialization script
+├── .env                  # <--- SECURE CONFIGURATION (Create this!)
+├── package.json          # Dependency manifest
+└── README.md             # This comprehensive guide
 ```
 
-- `/src/app`: Next.js pages and API routes.
-- `/src/lib`: Core logic (OCR, Certificate Gen, Scoring, Mail).
-- `/prisma`: Database schema and configuration.
-- `/public`: Static assets.
-
 ## 📄 License
-MIT
+Licensed under MIT. Built for the future of decentralized hackathon verification.

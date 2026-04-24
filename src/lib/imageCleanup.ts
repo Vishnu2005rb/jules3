@@ -28,7 +28,7 @@ export async function cleanupReviewImage(submissionId: string) {
       }
     }
 
-    // Update DB to nullify the image URL
+    // Update DB to nullify the image URL (works for both local files and base64 strings)
     await prisma.userSubmission.update({
       where: { id: submissionId },
       data: { reviewImageUrl: null },
