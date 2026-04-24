@@ -1,6 +1,25 @@
 import Link from 'next/link';
+import { prisma } from '@/lib/prisma';
 
-export default function LandingPage() {
+async function getSocialProof() {
+  try {
+    const recentUsers = await prisma.userSubmission.findMany({
+      where: { status: 'approved' },
+      take: 6,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        event: true
+      }
+    });
+    return recentUsers;
+  } catch (error) {
+    return [];
+  }
+}
+
+export default async function LandingPage() {
+  const recentUsers = await getSocialProof();
+
   return (
     <div className="min-h-screen bg-[#0f0720] text-white selection:bg-purple-500/30 font-sans">
       {/* Hero Section */}
@@ -43,6 +62,28 @@ export default function LandingPage() {
         </main>
       </div>
 
+      {/* Social Proof Section */}
+      {recentUsers.length > 0 && (
+        <section className="py-20 bg-white/5 border-y border-purple-500/10">
+          <div className="container mx-auto px-6">
+            <h2 className="text-2xl font-bold text-center mb-12">Recently Certified Participants</h2>
+            <div className="flex flex-wrap justify-center gap-4">
+              {recentUsers.map((user) => (
+                <div key={user.id} className="bg-purple-900/20 border border-purple-500/20 px-6 py-3 rounded-full flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 flex items-center justify-center text-xs font-bold">
+                    {user.name.charAt(0)}
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold leading-tight">{user.name}</p>
+                    <p className="text-[10px] text-purple-400 leading-tight">{user.event?.name}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Features Section */}
       <section id="features" className="py-24 bg-[#160b2e]">
         <div className="container mx-auto px-6">
@@ -63,6 +104,35 @@ export default function LandingPage() {
               description="Every certificate is unique and can be verified by anyone through our public verification portal."
               icon="✅"
             />
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="py-24">
+        <div className="container mx-auto px-6">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">What Participants Say</h2>
+          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            <div className="bg-white/5 p-8 rounded-3xl border border-purple-500/10 italic text-gray-300">
+              "The process was incredibly smooth. I submitted my LinkedIn review and had my certificate in my inbox within minutes. Best hackathon experience!"
+              <div className="mt-6 flex items-center gap-4 not-italic">
+                <div className="w-10 h-10 rounded-full bg-purple-500" />
+                <div>
+                  <p className="font-bold text-white">Alex Rivera</p>
+                  <p className="text-xs text-gray-500">Frontend Developer</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white/5 p-8 rounded-3xl border border-purple-500/10 italic text-gray-300">
+              "Finally a system that doesn't make me wait weeks for a piece of paper. The AI verification is genius."
+              <div className="mt-6 flex items-center gap-4 not-italic">
+                <div className="w-10 h-10 rounded-full bg-blue-500" />
+                <div>
+                  <p className="font-bold text-white">Sarah Chen</p>
+                  <p className="text-xs text-gray-500">ML Engineer</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>

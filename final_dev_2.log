@@ -1,0 +1,35 @@
+
+> hackathon-platform@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.4 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+- Environments: .env
+✓ Ready in 1070ms
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+- Experiments (use with caution):
+  · serverActions
+
+prisma:query SELECT "public"."UserSubmission"."id", "public"."UserSubmission"."name", "public"."UserSubmission"."email", "public"."UserSubmission"."phone", "public"."UserSubmission"."eventId", "public"."UserSubmission"."reviewImageUrl", "public"."UserSubmission"."extractedText", "public"."UserSubmission"."reviewLink", "public"."UserSubmission"."verificationScore", "public"."UserSubmission"."status", "public"."UserSubmission"."socialLinks", "public"."UserSubmission"."createdAt" FROM "public"."UserSubmission" WHERE "public"."UserSubmission"."status" = $1 ORDER BY "public"."UserSubmission"."createdAt" DESC LIMIT $2 OFFSET $3
+ HEAD / 200 in 3.4s (next.js: 436ms, application-code: 3.0s)
+prisma:query SELECT 1
+prisma:query SELECT "public"."UserSubmission"."id", "public"."UserSubmission"."name", "public"."UserSubmission"."email", "public"."UserSubmission"."phone", "public"."UserSubmission"."eventId", "public"."UserSubmission"."reviewImageUrl", "public"."UserSubmission"."extractedText", "public"."UserSubmission"."reviewLink", "public"."UserSubmission"."verificationScore", "public"."UserSubmission"."status", "public"."UserSubmission"."socialLinks", "public"."UserSubmission"."createdAt" FROM "public"."UserSubmission" WHERE "public"."UserSubmission"."status" = $1 ORDER BY "public"."UserSubmission"."createdAt" DESC LIMIT $2 OFFSET $3
+ GET / 200 in 843ms (next.js: 42ms, application-code: 800ms)
+ GET /admin/login 200 in 350ms (next.js: 55ms, proxy.ts: 139ms, application-code: 156ms)
+prisma:query SELECT "public"."UserSubmission"."id", "public"."UserSubmission"."name", "public"."UserSubmission"."email", "public"."UserSubmission"."phone", "public"."UserSubmission"."eventId", "public"."UserSubmission"."reviewImageUrl", "public"."UserSubmission"."extractedText", "public"."UserSubmission"."reviewLink", "public"."UserSubmission"."verificationScore", "public"."UserSubmission"."status", "public"."UserSubmission"."socialLinks", "public"."UserSubmission"."createdAt" FROM "public"."UserSubmission" WHERE "public"."UserSubmission"."status" = $1 ORDER BY "public"."UserSubmission"."createdAt" DESC LIMIT $2 OFFSET $3
+ GET / 200 in 2.3s (next.js: 7ms, application-code: 2.3s)
+ GET /admin/login 200 in 125ms (next.js: 5ms, proxy.ts: 8ms, application-code: 113ms)
+prisma:query SELECT "public"."Admin"."id", "public"."Admin"."username", "public"."Admin"."password" FROM "public"."Admin" WHERE ("public"."Admin"."username" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST /api/admin/login 401 in 1029ms (next.js: 308ms, proxy.ts: 12ms, application-code: 709ms)
+prisma:query SELECT 1
+prisma:query SELECT "public"."UserSubmission"."id", "public"."UserSubmission"."name", "public"."UserSubmission"."email", "public"."UserSubmission"."phone", "public"."UserSubmission"."eventId", "public"."UserSubmission"."reviewImageUrl", "public"."UserSubmission"."extractedText", "public"."UserSubmission"."reviewLink", "public"."UserSubmission"."verificationScore", "public"."UserSubmission"."status", "public"."UserSubmission"."socialLinks", "public"."UserSubmission"."createdAt" FROM "public"."UserSubmission" WHERE "public"."UserSubmission"."status" = $1 ORDER BY "public"."UserSubmission"."createdAt" DESC LIMIT $2 OFFSET $3
+ GET / 200 in 666ms (next.js: 7ms, application-code: 659ms)
+ GET /admin/login 200 in 78ms (next.js: 7ms, proxy.ts: 6ms, application-code: 65ms)
+prisma:query SELECT "public"."Admin"."id", "public"."Admin"."username", "public"."Admin"."password" FROM "public"."Admin" WHERE ("public"."Admin"."username" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST /api/admin/login 200 in 422ms (next.js: 8ms, proxy.ts: 10ms, application-code: 403ms)
+ GET /admin/dashboard 200 in 92ms (next.js: 37ms, proxy.ts: 12ms, application-code: 43ms)
+prisma:query SELECT "public"."UserSubmission"."id", "public"."UserSubmission"."name", "public"."UserSubmission"."email", "public"."UserSubmission"."phone", "public"."UserSubmission"."eventId", "public"."UserSubmission"."reviewImageUrl", "public"."UserSubmission"."extractedText", "public"."UserSubmission"."reviewLink", "public"."UserSubmission"."verificationScore", "public"."UserSubmission"."status", "public"."UserSubmission"."socialLinks", "public"."UserSubmission"."createdAt" FROM "public"."UserSubmission" WHERE 1=1 ORDER BY "public"."UserSubmission"."createdAt" DESC OFFSET $1
+ GET /api/admin/submissions 200 in 805ms (next.js: 291ms, proxy.ts: 15ms, application-code: 499ms)
+prisma:query SELECT "public"."UserSubmission"."id", "public"."UserSubmission"."name", "public"."UserSubmission"."email", "public"."UserSubmission"."phone", "public"."UserSubmission"."eventId", "public"."UserSubmission"."reviewImageUrl", "public"."UserSubmission"."extractedText", "public"."UserSubmission"."reviewLink", "public"."UserSubmission"."verificationScore", "public"."UserSubmission"."status", "public"."UserSubmission"."socialLinks", "public"."UserSubmission"."createdAt" FROM "public"."UserSubmission" WHERE 1=1 ORDER BY "public"."UserSubmission"."createdAt" DESC OFFSET $1
+ GET /api/admin/submissions 200 in 285ms (next.js: 15ms, proxy.ts: 11ms, application-code: 259ms)

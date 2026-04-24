@@ -1,26 +1,31 @@
-import prisma from './prisma';
+import { prisma } from './prisma';
+const bcrypt = require('bcryptjs');
 
 async function main() {
-  const event = await prisma.event.create({
-    data: {
+  const hashedPassword = await bcrypt.hash('admin123', 10);
+
+  const admin = await prisma.admin.upsert({
+    where: { username: 'admin' },
+    update: { password: hashedPassword },
+    create: {
+      username: 'admin',
+      password: hashedPassword,
+    },
+  });
+
+  console.log('Created/Updated admin with hashed password:', admin.username);
+
+  const event = await prisma.event.upsert({
+    where: { id: 'default-event-id' },
+    update: {},
+    create: {
+      id: 'default-event-id',
       name: 'Global AI Hackathon 2024',
       startDate: new Date('2024-01-01'),
       endDate: new Date('2024-12-31'),
     },
   });
-
-  console.log('Created event:', event);
-
-  const admin = await prisma.admin.upsert({
-    where: { username: 'admin' },
-    update: {},
-    create: {
-      username: 'admin',
-      password: 'admin123', // In production, this should be hashed
-    },
-  });
-
-  console.log('Created/Updated admin:', admin);
+  console.log('Created default event:', event.name);
 }
 
 main()

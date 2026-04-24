@@ -41,6 +41,15 @@ export default function AdminDashboard() {
     ? submissions
     : submissions.filter(s => s.status.toUpperCase() === filter);
 
+  const stats = {
+    total: submissions.length,
+    approved: submissions.filter(s => s.status === 'approved').length,
+    rejected: submissions.filter(s => s.status === 'rejected').length,
+    pending: submissions.filter(s => s.status === 'pending').length,
+  };
+
+  const approvalRate = stats.total > 0 ? Math.round((stats.approved / stats.total) * 100) : 0;
+
   return (
     <div className="min-h-screen bg-[#0f0720] text-white p-6 font-sans">
       <div className="max-w-7xl mx-auto">
@@ -61,6 +70,29 @@ export default function AdminDashboard() {
             ))}
           </div>
         </header>
+
+        {/* Analytics Section */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+          <div className="bg-white/5 border border-purple-500/10 p-6 rounded-3xl">
+            <p className="text-gray-400 text-sm font-medium mb-1">Total Submissions</p>
+            <p className="text-3xl font-bold">{stats.total}</p>
+          </div>
+          <div className="bg-white/5 border border-purple-500/10 p-6 rounded-3xl">
+            <p className="text-gray-400 text-sm font-medium mb-1">Approval Rate</p>
+            <div className="flex items-end gap-2">
+              <p className="text-3xl font-bold text-green-400">{approvalRate}%</p>
+              <p className="text-xs text-gray-500 mb-1">of total</p>
+            </div>
+          </div>
+          <div className="bg-white/5 border border-purple-500/10 p-6 rounded-3xl">
+            <p className="text-gray-400 text-sm font-medium mb-1">Rejected</p>
+            <p className="text-3xl font-bold text-red-400">{stats.rejected}</p>
+          </div>
+          <div className="bg-white/5 border border-purple-500/10 p-6 rounded-3xl">
+            <p className="text-gray-400 text-sm font-medium mb-1">Pending Review</p>
+            <p className="text-3xl font-bold text-yellow-400">{stats.pending}</p>
+          </div>
+        </div>
 
         {loading ? (
           <div className="text-center py-20 text-gray-500">Loading submissions...</div>

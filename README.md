@@ -1,36 +1,111 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI-Powered Hackathon Certificate & Review Verification Platform
 
-## Getting Started
+A production-ready, scalable web application for hackathons to automate project review verification and certificate issuance using OCR and dynamic PDF generation.
 
-First, run the development server:
+## 🚀 Features
 
+- **Multi-step Submission:** Easy user flow for details, image upload, and status tracking.
+- **AI-Powered OCR:** Automated text extraction from review screenshots using Tesseract.js.
+- **Intelligent Scoring:** Automated verification scoring (0-100) with fraud detection.
+- **Auto-Approval:** Submissions with high scores are automatically approved and certified.
+- **Dynamic Certificates:** Instant PDF generation with unique QR codes for public verification.
+- **Admin Dashboard:** Comprehensive management of events, submissions, and analytics.
+- **Secure Auth:** JWT-based session management for admin routes.
+- **Modern UI:** Responsive, SaaS-style purple/blue gradient theme using Tailwind CSS.
+
+## 🛠️ Tech Stack
+
+- **Framework:** Next.js (App Router)
+- **Language:** TypeScript
+- **Database:** PostgreSQL (Aiven/Supabase)
+- **ORM:** Prisma
+- **Auth:** JWT / jose
+- **OCR:** Tesseract.js
+- **PDF:** pdf-lib & qrcode
+- **Email:** Nodemailer (SMTP)
+- **Styling:** Tailwind CSS
+
+---
+
+## 💻 Local Development Setup (VS Code)
+
+Follow these steps to get the project running on your local machine:
+
+### 1. Prerequisites
+- [Node.js](https://nodejs.org/) (v18.x or higher)
+- [Git](https://git-scm.com/)
+- A PostgreSQL database (e.g., [Aiven](https://aiven.io/) or local)
+- SMTP credentials (e.g., [Gmail App Password](https://support.google.com/accounts/answer/185833))
+
+### 2. Clone the Repository
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <repository-url>
+cd hackathon-platform
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 3. Install Dependencies
+Open your VS Code terminal and run:
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 4. Environment Configuration
+Create a `.env` file in the root directory and fill in your credentials:
+```env
+# Database
+DATABASE_URL="postgresql://user:password@host:port/database?sslmode=require"
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Auth
+JWT_SECRET="your-super-secret-key-change-this"
 
-## Learn More
+# Email (SMTP)
+SMTP_HOST="smtp.gmail.com"
+SMTP_PORT=465
+SMTP_USER="your-email@gmail.com"
+SMTP_PASS="your-app-password"
 
-To learn more about Next.js, take a look at the following resources:
+# App
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 5. Database Setup
+Sync your database schema with Prisma:
+```bash
+npx prisma db push
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 6. Start the Development Server
+```bash
+npm run dev
+```
+The app will be available at `http://localhost:3000`.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🧪 Testing the Flow
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. **Admin Setup:**
+   - Go to `/admin/login`.
+   - Use `admin` / `password123` (Note: Ensure the Admin user exists in the DB via seed or manual insert).
+   - Create an Event in the "Event Manager" section.
+
+2. **User Submission:**
+   - Go to `/submit`.
+   - Fill in details and upload a screenshot containing the event name.
+   - The system will run OCR and provide an instant score.
+
+3. **Verification:**
+   - Go to `/verify`.
+   - Enter a Certificate ID or scan the QR code from a generated PDF.
+
+---
+
+## 📂 Project Structure
+
+- `/src/app`: Next.js pages and API routes.
+- `/src/lib`: Core logic (OCR, Certificate Gen, Scoring, Mail).
+- `/prisma`: Database schema and configuration.
+- `/public`: Static assets.
+
+## 📄 License
+MIT
