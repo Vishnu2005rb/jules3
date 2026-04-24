@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     }
 
     // Generate JWT
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret-key-123');
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'hackathon-default-secret-key-2024');
     const token = await new SignJWT({ id: admin.id, username: admin.username })
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()

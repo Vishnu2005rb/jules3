@@ -23,7 +23,8 @@ export default function AdminLoginPage() {
       });
 
       if (res.ok) {
-        router.push('/admin/dashboard');
+        console.log('Login successful, redirecting...');
+        window.location.href = '/admin/dashboard';
       } else {
         const data = await res.json();
         setError(data.error || 'Invalid credentials');
