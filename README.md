@@ -50,7 +50,10 @@ npm install
 ```
 
 ### 4. Environment Configuration
-Create a `.env` file in the root directory and fill in your credentials:
+Create a `.env` file in the **project root directory** (the same folder where `package.json` and `README.md` are located).
+
+Copy the contents of `.env.example` into your new `.env` file and fill in your credentials:
+
 ```env
 # Database
 DATABASE_URL="postgresql://user:password@host:port/database?sslmode=require"
@@ -115,6 +118,22 @@ Ensure your `DATABASE_URL` in the `.env` file is correct and accessible. If usin
 ---
 
 ## 📂 Project Structure
+
+A visual guide to where your files (including `.env`) should be located:
+
+```text
+hackathon-platform/
+├── prisma/               # Database schema
+├── public/               # Static assets
+├── src/                  # Source code
+│   ├── app/              # Pages & API routes
+│   └── lib/              # Core business logic
+├── .env                  # <--- CREATE THIS FILE HERE
+├── .env.example          # Template for .env
+├── package.json          # Project dependencies
+├── prisma.config.ts      # Prisma configuration
+└── README.md             # This file
+```
 
 - `/src/app`: Next.js pages and API routes.
 - `/src/lib`: Core logic (OCR, Certificate Gen, Scoring, Mail).
