@@ -1,42 +1,51 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { extractTextFromImage } from '@/lib/ocr';
-import { calculateVerificationScore } from '@/lib/verification';
+import { calculateVerificationScore, getImageHash, isDuplicateSubmission, nameMatches } from '@/lib/verification';
 import { processSuccessfulCertificate } from '@/lib/certificateService';
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { name, email, phone, eventId, reviewImageUrl, reviewLink, socialLinks } = body;
+    const { name, email, phone, eventId, reviewImageUrl, reviewLink, socialLinks, dynamicFields } = body;
 
     // 1. Basic Validation
     if (!name || !email || !eventId || !reviewImageUrl) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // 2. Duplicate Check
+    // 2. Fraud Detection (Image Hash & Email)
+    const imageHash = getImageHash(reviewImageUrl);
+    const isDuplicate = await isDuplicateSubmission(imageHash);
+
     const existingSubmission = await prisma.userSubmission.findFirst({
       where: { email, eventId }
     });
 
-    if (existingSubmission) {
-      return NextResponse.json({ error: 'Already submitted for this event' }, { status: 400 });
+    if (existingSubmission || isDuplicate) {
+      console.warn(`[Submission Denied] Duplicate detected. Email: ${email}, ImageHash: ${imageHash}`);
+      return NextResponse.json({ error: 'Duplicate submission detected' }, { status: 400 });
     }
 
     // 3. OCR Processing
-    const extractedText = await extractTextFromImage(reviewImageUrl);
-    const ocrConfidence = 85; // Default confidence as Tesseract simple wrapper returns string
+    const { text: extractedText, confidence: ocrConfidence } = await extractTextFromImage(reviewImageUrl);
 
-    // 4. Scoring
-    const event = await prisma.event.findUnique({ where: { id: eventId } });
+    // 4. Scoring Logic
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
+      include: { formTemplate: true, certificateTemplate: true }
+    });
+
     if (!event) return NextResponse.json({ error: 'Event not found' }, { status: 404 });
 
+    const nameMatched = nameMatches(name, extractedText);
     const score = calculateVerificationScore({
       extractedText,
       eventName: event.name,
       reviewLink,
       ocrConfidence,
-      isDuplicate: !!existingSubmission
+      isDuplicate,
+      nameMatched
     });
 
     // 5. Decision Logic
@@ -49,31 +58,36 @@ export async function POST(req: Request) {
       data: {
         name,
         email,
-        phone,
+        phone: phone || '',
         eventId,
         reviewImageUrl,
-        reviewLink,
+        imageHash,
         extractedText,
+        reviewLink,
         verificationScore: score,
         status,
-        socialLinks
+        socialLinks: socialLinks || {},
+        dynamicFields: dynamicFields || {}
       }
     });
 
-    // 7. Auto-generate certificate if approved
+    // 7. Async Processing (Trigger and continue)
     if (status === 'approved') {
-      try {
-        await processSuccessfulCertificate({
-          ...submission,
-          event: { name: event.name }
-        });
-      } catch (error) {
-        console.error('Failed to auto-process certificate:', error);
-      }
+      console.log(`[Submission] Auto-approved submission ${submission.id}. Starting cert generation...`);
+      // Start certificate process in background - do not await
+      processSuccessfulCertificate({
+        ...submission,
+        event: {
+          name: event.name,
+          certificateTemplate: event.certificateTemplate
+        }
+      }).catch(err => {
+        console.error(`[Async Error] Cert generation failed for ${submission.id}:`, err);
+      });
     }
 
     return NextResponse.json({
-      message: 'Submission received',
+      message: 'Submission received successfully',
       id: submission.id,
       score,
       status

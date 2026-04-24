@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 export default function AdminDashboard() {
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [filter, setFilter] = useState('ALL');
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -37,9 +38,12 @@ export default function AdminDashboard() {
     }
   };
 
-  const filteredSubmissions = filter === 'ALL'
-    ? submissions
-    : submissions.filter(s => s.status.toUpperCase() === filter);
+  const filteredSubmissions = submissions.filter(s => {
+    const matchesFilter = filter === 'ALL' || s.status.toUpperCase() === filter;
+    const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase()) ||
+                         s.email.toLowerCase().includes(search.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
 
   const stats = {
     total: submissions.length,
@@ -58,16 +62,27 @@ export default function AdminDashboard() {
             <h1 className="text-3xl font-bold">Admin Dashboard</h1>
             <p className="text-gray-400">Manage review submissions and approvals</p>
           </div>
-          <div className="flex gap-4">
-            {['ALL', 'PENDING', 'APPROVED', 'REJECTED', 'HOLD'].map(f => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${filter === f ? 'bg-purple-600' : 'bg-white/5 hover:bg-white/10'}`}
-              >
-                {f}
-              </button>
-            ))}
+          <div className="flex flex-col md:flex-row gap-4 items-center">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search name or email..."
+                className="bg-white/5 border border-purple-500/20 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-purple-500 w-64"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
+            </div>
+            <div className="flex gap-2 bg-white/5 p-1 rounded-xl border border-white/5">
+              {['ALL', 'PENDING', 'APPROVED', 'REJECTED', 'HOLD'].map(f => (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition uppercase ${filter === f ? 'bg-purple-600 shadow-lg' : 'text-gray-400 hover:text-white'}`}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
           </div>
         </header>
 

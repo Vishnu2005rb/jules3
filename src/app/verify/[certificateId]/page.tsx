@@ -49,10 +49,17 @@ export default function PublicVerifyPage({ params }: { params: Promise<{ certifi
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-600/10 blur-[120px] rounded-full"></div>
 
       <div className="max-w-2xl w-full bg-white/5 border border-purple-500/20 backdrop-blur-2xl p-10 md:p-16 rounded-[40px] text-center relative z-10">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-sm font-bold mb-10">
-          <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-          VERIFIED AUTHENTIC
-        </div>
+        {data.isAuthentic ? (
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-sm font-bold mb-10">
+            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+            VERIFIED AUTHENTIC
+          </div>
+        ) : (
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-bold mb-10">
+            <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+            INTEGRITY BREACH DETECTED
+          </div>
+        )}
 
         <h1 className="text-3xl md:text-5xl font-bold mb-2 text-white">{data.submission?.name || 'Participant'}</h1>
         <p className="text-gray-400 text-lg mb-10">Has successfully participated in</p>

@@ -18,7 +18,20 @@ export default function SubmitPage() {
     instagram: '',
     linkedin: '',
   });
+  const [dynamicData, setDynamicData] = useState<any>({});
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!file) {
+      setPreviewUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
 
   useEffect(() => {
     fetch('/api/events')
@@ -27,6 +40,13 @@ export default function SubmitPage() {
       .catch(err => console.error('Failed to load events', err));
   }, []);
 
+  const handleEventChange = (id: string) => {
+    const event = events.find(e => e.id === id);
+    setSelectedEvent(event);
+    setFormData({ ...formData, eventId: id });
+    setDynamicData({});
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) return alert('Please upload a screenshot');
@@ -34,8 +54,6 @@ export default function SubmitPage() {
     setLoading(true);
     setStatus('submitting');
 
-    // In this demo, we'll convert the file to base64 for simplicity in the API
-    // In production, use a multipart form parser or upload to S3 first
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onload = async () => {
@@ -47,8 +65,9 @@ export default function SubmitPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             ...formData,
-            reviewImageUrl: base64, // Sending base64 to match our current API expectations
-            socialLinks: { instagram: formData.instagram, linkedin: formData.linkedin }
+            reviewImageUrl: base64,
+            socialLinks: { instagram: formData.instagram, linkedin: formData.linkedin },
+            dynamicFields: dynamicData
           }),
         });
 
@@ -126,7 +145,7 @@ export default function SubmitPage() {
                   required
                   className="w-full bg-white/5 border border-purple-500/20 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500"
                   value={formData.eventId}
-                  onChange={e => setFormData({...formData, eventId: e.target.value})}
+                  onChange={e => handleEventChange(e.target.value)}
                 >
                   <option value="" className="bg-[#1a0b3c]">Choose an event...</option>
                   {events.map(event => (
@@ -134,6 +153,29 @@ export default function SubmitPage() {
                   ))}
                 </select>
               </div>
+
+              {selectedEvent?.formTemplate?.fields && (selectedEvent.formTemplate.fields as any[]).map((field, idx) => (
+                <div key={idx}>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">{field.label}</label>
+                  {field.type === 'select' ? (
+                    <select
+                      required={field.required}
+                      className="w-full bg-white/5 border border-purple-500/20 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500"
+                      onChange={e => setDynamicData({...dynamicData, [field.label]: e.target.value})}
+                    >
+                      <option value="" className="bg-[#1a0b3c]">Select...</option>
+                      {field.options?.map((opt: string) => <option key={opt} value={opt} className="bg-[#1a0b3c]">{opt}</option>)}
+                    </select>
+                  ) : (
+                    <input
+                      type={field.type}
+                      required={field.required}
+                      className="w-full bg-white/5 border border-purple-500/20 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500"
+                      onChange={e => setDynamicData({...dynamicData, [field.label]: e.target.value})}
+                    />
+                  )}
+                </div>
+              ))}
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-2">Phone Number</label>
                 <input
@@ -168,7 +210,7 @@ export default function SubmitPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-2">Review Screenshot</label>
-                <div className="border-2 border-dashed border-purple-500/20 rounded-2xl p-8 text-center hover:border-purple-500/40 transition">
+                <div className="border-2 border-dashed border-purple-500/20 rounded-2xl p-4 text-center hover:border-purple-500/40 transition bg-white/5 min-h-[200px] flex items-center justify-center relative overflow-hidden">
                   <input
                     type="file"
                     accept="image/*"
@@ -176,16 +218,22 @@ export default function SubmitPage() {
                     className="hidden"
                     id="screenshot-upload"
                   />
-                  <label htmlFor="screenshot-upload" className="cursor-pointer">
-                    {file ? (
-                      <span className="text-purple-400 font-medium">{file.name}</span>
-                    ) : (
+                  {!previewUrl ? (
+                    <label htmlFor="screenshot-upload" className="cursor-pointer w-full py-8">
                       <div className="space-y-2">
                         <div className="text-3xl">📸</div>
                         <p className="text-gray-400">Click to upload your review screenshot</p>
+                        <p className="text-[10px] text-gray-500 uppercase tracking-widest">Supports PNG, JPG</p>
                       </div>
-                    )}
-                  </label>
+                    </label>
+                  ) : (
+                    <div className="relative group w-full">
+                      <img src={previewUrl} alt="Preview" className="max-h-[300px] mx-auto rounded-lg shadow-2xl transition group-hover:opacity-50" />
+                      <label htmlFor="screenshot-upload" className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition cursor-pointer">
+                        <span className="bg-purple-600 px-4 py-2 rounded-full text-sm font-bold shadow-xl">Change Image</span>
+                      </label>
+                    </div>
+                  )}
                 </div>
               </div>
 

@@ -16,10 +16,19 @@ export async function middleware(request: NextRequest) {
     }
 
     try {
-      await jwtVerify(token, JWT_SECRET);
+      const { payload } = await jwtVerify(token, JWT_SECRET);
+
+      // Strict expiry check (jose handles this, but good to be explicit about requirements)
+      const now = Math.floor(Date.now() / 1000);
+      if (payload.exp && payload.exp < now) {
+        throw new Error('Token expired');
+      }
+
       return NextResponse.next();
     } catch (err) {
-      return NextResponse.redirect(new URL('/admin/login', request.url));
+      const response = NextResponse.redirect(new URL('/admin/login', request.url));
+      response.cookies.delete('admin_token');
+      return response;
     }
   }
 
@@ -32,10 +41,18 @@ export async function middleware(request: NextRequest) {
     }
 
     try {
-      await jwtVerify(token, JWT_SECRET);
+      const { payload } = await jwtVerify(token, JWT_SECRET);
+
+      const now = Math.floor(Date.now() / 1000);
+      if (payload.exp && payload.exp < now) {
+        throw new Error('Token expired');
+      }
+
       return NextResponse.next();
     } catch (err) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+      const response = NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
+      response.cookies.delete('admin_token');
+      return response;
     }
   }
 

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { generateCertificateHash } from '@/lib/verification';
 
 export async function GET(
   request: Request,
@@ -20,7 +21,20 @@ export async function GET(
       return NextResponse.json({ error: 'Certificate not found' }, { status: 404 });
     }
 
-    return NextResponse.json(certificate);
+    // Integrity Check: Re-hash and compare
+    const expectedHash = generateCertificateHash({
+      submissionId: certificate.submissionId,
+      name: certificate.submission.name,
+      eventName: certificate.submission.event.name,
+      issuedAt: certificate.issuedAt
+    });
+
+    const isAuthentic = expectedHash === certificate.hash;
+
+    return NextResponse.json({
+      ...certificate,
+      isAuthentic
+    });
   } catch (error) {
     console.error('Verify error:', error);
     return NextResponse.json({ error: 'Failed to verify certificate' }, { status: 500 });

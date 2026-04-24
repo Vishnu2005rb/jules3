@@ -81,7 +81,10 @@ export async function generateCertificatePDF(data: {
   // QR Code
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
   const qrDataUrl = await QRCode.toDataURL(`${baseUrl}/verify/${data.certificateId}`);
-  const qrImageBytes = await fetch(qrDataUrl).then(res => res.arrayBuffer());
+
+  // Extract base64 data from Data URL (fix for Node.js environments)
+  const base64Data = qrDataUrl.split(',')[1];
+  const qrImageBytes = Buffer.from(base64Data, 'base64');
   const qrImage = await pdfDoc.embedPng(qrImageBytes);
 
   page.drawImage(qrImage, {

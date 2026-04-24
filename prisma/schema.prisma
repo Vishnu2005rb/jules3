@@ -8,13 +8,31 @@ datasource db {
 }
 
 model Event {
-  id                    String           @id @default(cuid())
+  id                    String               @id @default(cuid())
   name                  String
   formTemplateId        String?
+  formTemplate          FormTemplate?        @relation(fields: [formTemplateId], references: [id])
   certificateTemplateId String?
+  certificateTemplate   CertificateTemplate? @relation(fields: [certificateTemplateId], references: [id])
   startDate             DateTime
   endDate               DateTime
   submissions           UserSubmission[]
+}
+
+model CertificateTemplate {
+  id        String   @id @default(cuid())
+  name      String
+  config    Json     // { textX: number, textY: number, color: string, fontSize: number, etc }
+  createdAt DateTime @default(now())
+  events    Event[]
+}
+
+model FormTemplate {
+  id        String   @id @default(cuid())
+  name      String
+  fields    Json     // [{ label: string, type: string, required: boolean, options?: string[] }]
+  createdAt DateTime @default(now())
+  events    Event[]
 }
 
 model UserSubmission {
@@ -25,15 +43,18 @@ model UserSubmission {
   eventId           String
   event             Event        @relation(fields: [eventId], references: [id])
   reviewImageUrl    String?
+  imageHash         String?      // MD5 or SHA256 of the image to detect duplicates
   extractedText     String?
   reviewLink        String?
   verificationScore Int          @default(0)
   status            String       @default("pending") // pending, approved, rejected, hold
   socialLinks       Json?        // { linkedin?: string, instagram?: string }
+  dynamicFields     Json?        // { [fieldLabel]: value }
   createdAt         DateTime     @default(now())
   certificate       Certificate?
 
   @@index([email])
+  @@index([imageHash])
 }
 
 model Certificate {
@@ -41,6 +62,7 @@ model Certificate {
   submissionId  String         @unique
   submission    UserSubmission @relation(fields: [submissionId], references: [id])
   certificateId String         @unique // unique public ID for verification
+  hash          String         @unique // Tamper-proof hash of certificate data
   fileUrl       String
   issuedAt      DateTime       @default(now())
 }
