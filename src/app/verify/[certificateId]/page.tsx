@@ -54,11 +54,11 @@ export default function PublicVerifyPage({ params }: { params: Promise<{ certifi
           VERIFIED AUTHENTIC
         </div>
 
-        <h1 className="text-3xl md:text-5xl font-bold mb-2 text-white">{data.name}</h1>
+        <h1 className="text-3xl md:text-5xl font-bold mb-2 text-white">{data.submission?.name || 'Participant'}</h1>
         <p className="text-gray-400 text-lg mb-10">Has successfully participated in</p>
 
         <div className="bg-purple-500/10 border border-purple-500/20 rounded-3xl p-8 mb-10">
-          <h2 className="text-2xl md:text-3xl font-black text-purple-400 uppercase tracking-tight">{data.eventName}</h2>
+          <h2 className="text-2xl md:text-3xl font-black text-purple-400 uppercase tracking-tight">{data.submission?.event?.name || 'Hackathon Event'}</h2>
         </div>
 
         <div className="grid grid-cols-2 gap-8 text-left border-t border-white/5 pt-10">

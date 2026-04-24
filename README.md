@@ -100,6 +100,20 @@ The app will be available at `http://localhost:3000`.
 
 ---
 
+## 🛠️ Troubleshooting
+
+### Prisma Client Error
+If you see `@prisma/client did not initialize yet`, run:
+```bash
+npx prisma generate
+```
+This error usually happens if the environment hasn't been synced with the database schema yet.
+
+### Database Connection Issues
+Ensure your `DATABASE_URL` in the `.env` file is correct and accessible. If using a cloud provider like Aiven or Supabase, make sure the `sslmode=require` (or `no-verify` depending on setup) parameter is included.
+
+---
+
 ## 📂 Project Structure
 
 - `/src/app`: Next.js pages and API routes.
