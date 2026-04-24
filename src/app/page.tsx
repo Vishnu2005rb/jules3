@@ -1,177 +1,215 @@
+'use client';
+
 import Link from 'next/link';
-import { prisma } from '@/lib/prisma';
+import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
 
-async function getSocialProof() {
-  try {
-    const recentUsers = await prisma.userSubmission.findMany({
-      where: { status: 'approved' },
-      take: 6,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        event: true
+export default function LandingPage() {
+  const [recentUsers, setRecentUsers] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch('/api/social-proof')
+      .then(res => res.json())
+      .then(data => setRecentUsers(data))
+      .catch(err => console.error('Failed to load social proof', err));
+  }, []);
+
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
       }
-    });
-    return recentUsers;
-  } catch (error) {
-    return [];
-  }
-}
+    }
+  };
 
-export default async function LandingPage() {
-  const recentUsers = await getSocialProof();
+  const item = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 }
+  };
 
   return (
-    <div className="min-h-screen bg-[#0f0720] text-white selection:bg-purple-500/30 font-sans">
+    <div className="min-h-screen bg-[#0a0516] text-white selection:bg-purple-500/30 font-sans relative overflow-hidden">
+      {/* Dynamic Background Glows */}
+      <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-purple-600/10 blur-[120px] rounded-full -translate-x-1/2 -translate-y-1/2 animate-pulse-glow" />
+      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-blue-600/10 blur-[120px] rounded-full translate-x-1/2 translate-y-1/2 animate-pulse-glow" />
+      <div className="absolute top-1/2 left-1/2 w-[300px] h-[300px] bg-indigo-600/5 blur-[100px] rounded-full -translate-x-1/2 -translate-y-1/2" />
+
+      {/* Navigation */}
+      <motion.nav
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        className="container mx-auto px-6 py-8 flex justify-between items-center relative z-20"
+      >
+        <div className="text-2xl font-black tracking-tighter bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent glow-text-purple">
+          CertiVerify AI
+        </div>
+        <div className="space-x-8 hidden md:flex items-center">
+          <Link href="#features" className="text-sm font-medium hover:text-purple-400 transition-colors text-gray-400">Features</Link>
+          <Link href="/verify" className="text-sm font-medium hover:text-purple-400 transition-colors text-gray-400">Verify</Link>
+          <Link href="/admin/login" className="text-sm font-medium hover:text-purple-400 transition-colors text-gray-400">Admin</Link>
+          <Link href="/submit" className="glass px-8 py-3 rounded-2xl font-bold text-sm border border-purple-500/20 hover:border-purple-500/40 hover:bg-purple-500/10 transition-all duration-300 shadow-[0_0_15px_rgba(168,85,247,0.1)]">
+            Get Certified
+          </Link>
+        </div>
+      </motion.nav>
+
       {/* Hero Section */}
-      <div className="relative overflow-hidden">
-        {/* Background Glows */}
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-900/20 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-900/20 blur-[120px] rounded-full" />
-
-        <nav className="container mx-auto px-6 py-8 flex justify-between items-center relative z-10">
-          <div className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-            CertiVerify AI
-          </div>
-          <div className="space-x-8 hidden md:flex items-center">
-            <Link href="#features" className="hover:text-purple-400 transition text-gray-300">Features</Link>
-            <Link href="/verify" className="hover:text-purple-400 transition text-gray-300">Verify</Link>
-            <Link href="/admin/login" className="hover:text-purple-400 transition text-gray-300">Admin</Link>
-            <Link href="/submit" className="bg-gradient-to-r from-purple-600 to-blue-600 px-6 py-2 rounded-full font-medium hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] transition text-white">
-              Get Certified
-            </Link>
-          </div>
-        </nav>
-
-        <main className="container mx-auto px-6 pt-20 pb-32 relative z-10">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-5xl md:text-7xl font-extrabold mb-8 leading-tight text-white">
-              Automated Verification for <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">Hackathon Heroes</span>
+      <main className="container mx-auto px-6 pt-24 pb-32 relative z-10">
+        <div className="max-w-5xl mx-auto text-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <span className="inline-block px-4 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-bold tracking-widest uppercase mb-8">
+              AI-Powered Verification Engine
+            </span>
+            <h1 className="text-6xl md:text-8xl font-black mb-8 leading-[1.1] tracking-tight text-white">
+              Automated Trust for <br />
+              <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-500 bg-clip-text text-transparent">Hackathon Heroes</span>
             </h1>
-            <p className="text-gray-400 text-xl mb-12 max-w-2xl mx-auto">
-              Submit your project reviews, get verified by AI, and receive your official hackathon certificates instantly.
+            <p className="text-gray-400 text-xl md:text-2xl mb-12 max-w-2xl mx-auto leading-relaxed">
+              Submit your reviews, let our AI verify your impact, and claim your official certificates in seconds.
             </p>
-            <div className="flex flex-col md:flex-row gap-6 justify-center">
-              <Link href="/submit" className="bg-white text-purple-900 px-10 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition shadow-xl">
-                Submit Review
-              </Link>
-              <Link href="/verify" className="border border-purple-500/30 bg-purple-500/5 px-10 py-4 rounded-xl font-bold text-lg hover:bg-purple-500/10 transition text-white">
-                Verify Certificate
-              </Link>
-            </div>
-          </div>
-        </main>
-      </div>
+          </motion.div>
 
-      {/* Social Proof Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="flex flex-col sm:flex-row gap-6 justify-center items-center"
+          >
+            <Link href="/submit" className="group relative w-full sm:w-auto">
+              <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-300" />
+              <div className="relative bg-white text-black px-12 py-5 rounded-2xl font-black text-lg hover:bg-gray-100 transition duration-300 text-center">
+                Submit Review
+              </div>
+            </Link>
+            <Link href="/verify" className="w-full sm:w-auto glass-dark px-12 py-5 rounded-2xl font-bold text-lg border border-white/5 hover:border-white/20 transition duration-300 text-center">
+              Verify Certificate
+            </Link>
+          </motion.div>
+        </div>
+      </main>
+
+      {/* Social Proof */}
       {recentUsers.length > 0 && (
-        <section className="py-20 bg-white/5 border-y border-purple-500/10">
+        <section className="py-16 relative">
           <div className="container mx-auto px-6">
-            <h2 className="text-2xl font-bold text-center mb-12">Recently Certified Participants</h2>
-            <div className="flex flex-wrap justify-center gap-4">
-              {recentUsers.map((user) => (
-                <div key={user.id} className="bg-purple-900/20 border border-purple-500/20 px-6 py-3 rounded-full flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 flex items-center justify-center text-xs font-bold">
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              className="flex flex-wrap justify-center gap-4"
+            >
+              {recentUsers.map((user, i) => (
+                <motion.div
+                  key={user.id}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: i * 0.1 }}
+                  className="glass px-6 py-3 rounded-2xl flex items-center gap-3 border border-white/5 hover:border-purple-500/30 transition-all duration-300 group cursor-default"
+                >
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 flex items-center justify-center text-xs font-black shadow-lg">
                     {user.name.charAt(0)}
                   </div>
                   <div>
-                    <p className="text-sm font-bold leading-tight">{user.name}</p>
-                    <p className="text-[10px] text-purple-400 leading-tight">{user.event?.name}</p>
+                    <p className="text-sm font-bold text-gray-200 group-hover:text-white transition-colors">{user.name}</p>
+                    <p className="text-[10px] text-purple-400 font-bold uppercase tracking-tighter">{user.event?.name}</p>
                   </div>
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           </div>
         </section>
       )}
 
-      {/* Features Section */}
-      <section id="features" className="py-24 bg-[#160b2e]">
+      {/* Features Grid */}
+      <section id="features" className="py-32 relative">
         <div className="container mx-auto px-6">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-16 text-white">Powered by Intelligent Automation</h2>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-5xl font-black mb-6">Built for the Future</h2>
+            <p className="text-gray-500 text-lg">Scalable, secure, and entirely automated.</p>
+          </div>
+
+          <motion.div
+            variants={container}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            className="grid md:grid-cols-3 gap-8"
+          >
             <FeatureCard
-              title="AI OCR Verification"
-              description="Our system automatically extracts text from your screenshots to verify event participation."
+              title="AI-OCR Verification"
+              description="Proprietary OCR engine extracts and validates participation data with 99% accuracy."
               icon="🤖"
+              delay={0.1}
             />
             <FeatureCard
-              title="Instant PDF Generation"
-              description="Approved submissions trigger instant high-quality PDF certificate generation with unique QR codes."
+              title="Dynamic Generation"
+              description="Instant high-quality PDF issuance with custom templates and dynamic fields."
               icon="📄"
+              delay={0.2}
             />
             <FeatureCard
               title="Public Verification"
-              description="Every certificate is unique and can be verified by anyone through our public verification portal."
+              description="Cryptographic hashing ensures every certificate is tamper-proof and verifiable."
               icon="✅"
+              delay={0.3}
             />
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="py-24">
-        <div className="container mx-auto px-6">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">What Participants Say</h2>
-          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            <div className="bg-white/5 p-8 rounded-3xl border border-purple-500/10 italic text-gray-300">
-              "The process was incredibly smooth. I submitted my LinkedIn review and had my certificate in my inbox within minutes. Best hackathon experience!"
-              <div className="mt-6 flex items-center gap-4 not-italic">
-                <div className="w-10 h-10 rounded-full bg-purple-500" />
-                <div>
-                  <p className="font-bold text-white">Alex Rivera</p>
-                  <p className="text-xs text-gray-500">Frontend Developer</p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-white/5 p-8 rounded-3xl border border-purple-500/10 italic text-gray-300">
-              "Finally a system that doesn't make me wait weeks for a piece of paper. The AI verification is genius."
-              <div className="mt-6 flex items-center gap-4 not-italic">
-                <div className="w-10 h-10 rounded-full bg-blue-500" />
-                <div>
-                  <p className="font-bold text-white">Sarah Chen</p>
-                  <p className="text-xs text-gray-500">ML Engineer</p>
-                </div>
-              </div>
-            </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* Stats Section */}
-      <section className="py-20 border-y border-purple-500/10">
-        <div className="container mx-auto px-6 grid md:grid-cols-4 gap-8 text-center">
-          <div>
-            <div className="text-4xl font-bold text-purple-400 mb-2">1,000+</div>
-            <div className="text-gray-500">Certificates Issued</div>
-          </div>
-          <div>
-            <div className="text-4xl font-bold text-blue-400 mb-2">50+</div>
-            <div className="text-gray-500">Hackathon Events</div>
-          </div>
-          <div>
-            <div className="text-4xl font-bold text-pink-400 mb-2">99.9%</div>
-            <div className="text-gray-500">Accuracy Rate</div>
-          </div>
-          <div>
-            <div className="text-4xl font-bold text-purple-400 mb-2">&lt; 2m</div>
-            <div className="text-gray-500">Average Processing</div>
+      <section className="py-24 glass-dark border-y border-white/5 relative">
+        <div className="container mx-auto px-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
+            <StatItem label="Certificates Issued" value="1,240+" />
+            <StatItem label="Global Events" value="64" />
+            <StatItem label="Processing Speed" value="< 1.5s" />
+            <StatItem label="Happy Users" value="98%" />
           </div>
         </div>
       </section>
 
-      <footer className="py-12 border-t border-purple-500/10 text-center text-gray-500">
-        <p>© 2024 CertiVerify AI platform. Built for the future of hackathons.</p>
+      <footer className="py-20 text-center">
+        <p className="text-gray-600 text-sm font-medium">
+          © 2026 CertiVerify AI. Part of the Hackathon Global Infrastructure.
+        </p>
       </footer>
     </div>
   );
 }
 
-function FeatureCard({ title, description, icon }: { title: string, description: string, icon: string }) {
+function FeatureCard({ title, description, icon, delay }: { title: string, description: string, icon: string, delay: number }) {
   return (
-    <div className="p-8 rounded-2xl bg-gradient-to-b from-purple-900/10 to-transparent border border-purple-500/10 hover:border-purple-500/30 transition group">
-      <div className="text-4xl mb-6 group-hover:scale-110 transition-transform duration-300 inline-block">{icon}</div>
-      <h3 className="text-xl font-bold mb-4 text-white">{title}</h3>
-      <p className="text-gray-400 leading-relaxed">{description}</p>
-    </div>
+    <motion.div
+      variants={{
+        hidden: { opacity: 0, y: 20 },
+        show: { opacity: 1, y: 0 }
+      }}
+      className="p-10 rounded-[32px] glass border border-white/5 hover:border-purple-500/30 transition-all duration-500 group relative overflow-hidden"
+    >
+      <div className="absolute top-0 right-0 w-32 h-32 bg-purple-600/5 blur-3xl rounded-full -mr-10 -mt-10 group-hover:bg-purple-600/10 transition-all" />
+      <div className="text-5xl mb-8 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-500 inline-block">{icon}</div>
+      <h3 className="text-2xl font-black mb-4 text-white group-hover:text-purple-300 transition-colors">{title}</h3>
+      <p className="text-gray-500 leading-relaxed text-lg group-hover:text-gray-400 transition-colors">{description}</p>
+    </motion.div>
+  );
+}
+
+function StatItem({ label, value }: { label: string, value: string }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+    >
+      <div className="text-4xl md:text-5xl font-black bg-gradient-to-b from-white to-gray-500 bg-clip-text text-transparent mb-2">
+        {value}
+      </div>
+      <div className="text-xs font-black text-purple-400 uppercase tracking-widest">{label}</div>
+    </motion.div>
   );
 }

@@ -1,10 +1,12 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0f0720;
+  --background: #0a0516;
   --foreground: #ffffff;
-  --purple-glow: rgba(168, 85, 247, 0.15);
-  --blue-glow: rgba(59, 130, 246, 0.15);
+  --purple-glow: rgba(168, 85, 247, 0.25);
+  --blue-glow: rgba(59, 130, 246, 0.25);
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.08);
 }
 
 @theme inline {
@@ -18,22 +20,98 @@ body {
   background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  overflow-x: hidden;
 }
 
+/* Glassmorphism */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+}
+
+.glass-dark {
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Neon Glows */
 .glow-purple {
-  box-shadow: 0 0 50px var(--purple-glow);
+  box-shadow: 0 0 30px -5px var(--purple-glow);
 }
 
 .glow-blue {
-  box-shadow: 0 0 50px var(--blue-glow);
+  box-shadow: 0 0 30px -5px var(--blue-glow);
+}
+
+.glow-text-purple {
+  text-shadow: 0 0 15px var(--purple-glow);
+}
+
+.glow-text-blue {
+  text-shadow: 0 0 15px var(--blue-glow);
+}
+
+/* Buttons & Interactions */
+.btn-primary {
+  @apply relative overflow-hidden transition-all duration-300;
+}
+
+.btn-primary::after {
+  content: '';
+  @apply absolute inset-0 bg-white/20 opacity-0 transition-opacity duration-300;
+}
+
+.btn-primary:hover::after {
+  @apply opacity-100;
+}
+
+.btn-primary:active {
+  @apply scale-95;
 }
 
 /* Animations */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.5s ease-out forwards;
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.5; filter: blur(80px); }
+  50% { opacity: 0.8; filter: blur(100px); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 8s ease-in-out infinite;
+}
+
+/* Form Styles */
+.input-field {
+  @apply w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2a1a4a;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3b2a5a;
 }

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 
 export default function VerifySearchPage() {
   const [certId, setCertId] = useState('');
@@ -15,33 +16,58 @@ export default function VerifySearchPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f0720] flex items-center justify-center p-6 text-white font-sans">
-      <div className="w-full max-w-xl text-center">
-        <h1 className="text-4xl font-bold mb-4 text-white">Verify a Certificate</h1>
-        <p className="text-gray-400 mb-10">Enter the unique certificate ID to verify its authenticity.</p>
+    <div className="min-h-screen bg-[#0a0516] text-white flex items-center justify-center p-6 font-sans relative overflow-hidden">
+      {/* Background Decor */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-900/10 blur-[120px] rounded-full animate-pulse-glow" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-900/10 blur-[120px] rounded-full animate-pulse-glow" />
 
-        <form onSubmit={handleVerify} className="relative group">
-          <input
-            type="text"
-            placeholder="e.g. CERT-12345-ABCDE"
-            className="w-full bg-white/5 border border-purple-500/20 rounded-2xl px-8 py-6 text-xl focus:outline-none focus:border-purple-500 transition shadow-2xl text-white"
-            value={certId}
-            onChange={e => setCertId(e.target.value)}
-          />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="max-w-xl w-full relative z-10"
+      >
+        <div className="text-center mb-12">
+          <motion.div
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            className="inline-block w-20 h-20 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center text-4xl mb-8 shadow-2xl"
+          >
+            🛡️
+          </motion.div>
+          <h1 className="text-5xl font-black mb-4 tracking-tight">Trust <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">Verification</span></h1>
+          <p className="text-gray-500 font-bold text-sm tracking-widest uppercase">Validate cryptographic authenticity</p>
+        </div>
+
+        <form onSubmit={handleVerify} className="glass p-10 md:p-14 rounded-[40px] border border-white/5 shadow-2xl space-y-8">
+          <div className="space-y-4">
+            <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-1">Certificate ID</label>
+            <input
+              type="text"
+              required
+              placeholder="e.g. CERT-1713987456-AX92"
+              className="input-field text-center font-mono text-lg tracking-wider"
+              value={certId}
+              onChange={e => setCertId(e.target.value)}
+            />
+          </div>
+
           <button
             type="submit"
-            className="absolute right-3 top-3 bottom-3 px-8 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 font-bold hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] transition text-white"
+            className="w-full py-5 rounded-2xl bg-purple-600 hover:bg-purple-500 font-black text-xs transition-all shadow-xl shadow-purple-600/20 uppercase tracking-[0.2em] group"
           >
-            Verify
+            <span className="group-hover:scale-110 inline-block transition-transform">Initialize Protocol</span>
           </button>
         </form>
 
-        <div className="mt-12 grid grid-cols-3 gap-6 opacity-50">
-           <div className="text-xs uppercase tracking-widest font-bold text-gray-400">Secure</div>
-           <div className="text-xs uppercase tracking-widest font-bold text-gray-400">Immutable</div>
-           <div className="text-xs uppercase tracking-widest font-bold text-gray-400">Official</div>
-        </div>
-      </div>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="mt-12 text-center text-gray-600 text-xs font-bold uppercase tracking-tighter"
+        >
+          Secured by CertiVerify AI Cryptographic Infrastructure
+        </motion.p>
+      </motion.div>
     </div>
   );
 }
