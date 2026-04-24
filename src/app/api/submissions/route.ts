@@ -14,7 +14,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // 2. Fraud Detection (Image Hash & Email)
+    // 2. Event Status Check (Automation)
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
+      include: { formTemplate: true, certificateTemplate: true }
+    });
+
+    if (!event) return NextResponse.json({ error: 'Event not found' }, { status: 404 });
+
+    const now = new Date();
+    if (now < event.startDate || now > event.endDate) {
+      return NextResponse.json({ error: 'Submissions for this event are currently closed.' }, { status: 403 });
+    }
+
+    // 3. Fraud Detection (Image Hash & Email)
     const imageHash = getImageHash(reviewImageUrl);
     const isDuplicate = await isDuplicateSubmission(imageHash);
 
@@ -23,21 +36,13 @@ export async function POST(req: Request) {
     });
 
     if (existingSubmission || isDuplicate) {
-      console.warn(`[Submission Denied] Duplicate detected. Email: ${email}, ImageHash: ${imageHash}`);
       return NextResponse.json({ error: 'Duplicate submission detected' }, { status: 400 });
     }
 
-    // 3. OCR Processing
+    // 4. OCR Processing
     const { text: extractedText, confidence: ocrConfidence } = await extractTextFromImage(reviewImageUrl);
 
-    // 4. Scoring Logic
-    const event = await prisma.event.findUnique({
-      where: { id: eventId },
-      include: { formTemplate: true, certificateTemplate: true }
-    });
-
-    if (!event) return NextResponse.json({ error: 'Event not found' }, { status: 404 });
-
+    // 5. Scoring Logic
     const nameMatched = nameMatches(name, extractedText);
     const score = calculateVerificationScore({
       extractedText,
@@ -48,12 +53,12 @@ export async function POST(req: Request) {
       nameMatched
     });
 
-    // 5. Decision Logic
+    // 6. Decision Logic
     let status = 'pending';
     if (score >= 80) status = 'approved';
     else if (score < 50) status = 'rejected';
 
-    // 6. Save Submission
+    // 7. Save Submission
     const submission = await prisma.userSubmission.create({
       data: {
         name,
@@ -71,19 +76,15 @@ export async function POST(req: Request) {
       }
     });
 
-    // 7. Async Processing (Trigger and continue)
+    // 8. Async Processing (Trigger and continue)
     if (status === 'approved') {
-      console.log(`[Submission] Auto-approved submission ${submission.id}. Starting cert generation...`);
-      // Start certificate process in background - do not await
       processSuccessfulCertificate({
         ...submission,
         event: {
           name: event.name,
           certificateTemplate: event.certificateTemplate
         }
-      }).catch(err => {
-        console.error(`[Async Error] Cert generation failed for ${submission.id}:`, err);
-      });
+      }).catch(err => console.error(`[Async Error] Cert generation failed:`, err));
     }
 
     return NextResponse.json({

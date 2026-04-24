@@ -1,0 +1,72 @@
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+
+export async function GET(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const type = searchParams.get('type'); // 'form' or 'certificate'
+
+    if (type === 'form') {
+      const templates = await prisma.formTemplate.findMany();
+      return NextResponse.json(templates);
+    } else if (type === 'certificate') {
+      const templates = await prisma.certificateTemplate.findMany();
+      return NextResponse.json(templates);
+    }
+
+    const forms = await prisma.formTemplate.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
+    const certs = await prisma.certificateTemplate.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
+    return NextResponse.json({ forms, certs });
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to fetch templates' }, { status: 500 });
+  }
+}
+
+export async function POST(req: Request) {
+  try {
+    const { type, name, config, fields } = await req.json();
+
+    if (type === 'form') {
+      const template = await prisma.formTemplate.create({
+        data: { name, fields: fields || [] }
+      });
+      return NextResponse.json(template);
+    } else if (type === 'certificate') {
+      const template = await prisma.certificateTemplate.create({
+        data: { name, config: config || {} }
+      });
+      return NextResponse.json(template);
+    }
+
+    return NextResponse.json({ error: 'Invalid template type' }, { status: 400 });
+  } catch (error) {
+    console.error('Template Creation Error:', error);
+    return NextResponse.json({ error: 'Failed to create template' }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id');
+    const type = searchParams.get('type');
+
+    if (!id || !type) {
+      return NextResponse.json({ error: 'ID and type are required' }, { status: 400 });
+    }
+
+    if (type === 'form') {
+      await prisma.formTemplate.delete({ where: { id } });
+    } else if (type === 'certificate') {
+      await prisma.certificateTemplate.delete({ where: { id } });
+    }
+
+    return NextResponse.json({ message: 'Template deleted' });
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to delete template' }, { status: 500 });
+  }
+}

@@ -8,6 +8,7 @@ export default function SubmitPage() {
   const [step, setStep] = useState(1);
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState(false);
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [formData, setFormData] = useState({
     name: '',
@@ -22,6 +23,8 @@ export default function SubmitPage() {
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [certPreviewUrl, setCertPreviewUrl] = useState<string | null>(null);
+  const [showCertPreview, setShowCertPreview] = useState(false);
 
   useEffect(() => {
     if (!file) {
@@ -45,6 +48,24 @@ export default function SubmitPage() {
     setSelectedEvent(event);
     setFormData({ ...formData, eventId: id });
     setDynamicData({});
+  };
+
+  const generateCertPreview = async () => {
+    setPreviewLoading(true);
+    try {
+      const res = await fetch('/api/submissions/preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: formData.name, eventId: formData.eventId }),
+      });
+      const data = await res.json();
+      setCertPreviewUrl(data.previewUrl);
+      setShowCertPreview(true);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setPreviewLoading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -107,7 +128,7 @@ export default function SubmitPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0f0720] py-20 px-6 text-white">
+    <div className="min-h-screen bg-[#0f0720] py-20 px-6 text-white font-sans">
       <div className="max-w-2xl mx-auto">
         <div className="mb-12 text-center">
           <h1 className="text-4xl font-bold mb-4">Claim Your Certificate</h1>
@@ -185,13 +206,25 @@ export default function SubmitPage() {
                   onChange={e => setFormData({...formData, phone: e.target.value})}
                 />
               </div>
+
+              <div className="pt-4">
+                <button
+                  type="button"
+                  onClick={generateCertPreview}
+                  disabled={!formData.name || !formData.eventId || previewLoading}
+                  className="w-full py-3 rounded-xl border border-purple-500/30 text-purple-400 text-sm font-bold hover:bg-purple-500/5 transition disabled:opacity-30"
+                >
+                  {previewLoading ? 'Generating Preview...' : '👁️ Preview Certificate'}
+                </button>
+              </div>
+
               <button
                 type="button"
                 onClick={() => setStep(2)}
                 disabled={!formData.name || !formData.email || !formData.eventId}
                 className="w-full py-4 rounded-xl bg-purple-600 hover:bg-purple-700 transition font-bold disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Continue
+                Continue to Review Submission
               </button>
             </div>
           ) : (
@@ -277,6 +310,21 @@ export default function SubmitPage() {
             </div>
           )}
         </form>
+
+        {showCertPreview && (
+          <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center p-6 z-[100]">
+            <div className="w-full max-w-4xl flex flex-col h-full">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold">Certificate Preview</h3>
+                <button onClick={() => setShowCertPreview(false)} className="text-gray-400 hover:text-white text-2xl">&times;</button>
+              </div>
+              <div className="flex-grow bg-white rounded-xl overflow-hidden shadow-2xl">
+                <iframe src={certPreviewUrl!} className="w-full h-full border-none" title="Certificate Preview"></iframe>
+              </div>
+              <p className="text-center text-gray-500 text-sm mt-4">This is a placeholder preview. Your final certificate will have a unique ID and QR code.</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
