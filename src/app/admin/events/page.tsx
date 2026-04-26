@@ -11,6 +11,7 @@ export default function EventManager() {
   const [certs, setCerts] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [newEvent, setNewEvent] = useState({
     name: '',
     startDate: '',
@@ -46,13 +47,17 @@ export default function EventManager() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const method = editingId ? 'PUT' : 'POST';
+      const body = editingId ? { ...newEvent, id: editingId } : newEvent;
+
       const res = await fetch('/api/admin/events', {
-        method: 'POST',
+        method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newEvent)
+        body: JSON.stringify(body)
       });
       if (res.ok) {
         setIsModalOpen(false);
+        setEditingId(null);
         fetchData();
         setNewEvent({ name: '', startDate: '', endDate: '', formTemplateId: '', certificateTemplateId: '' });
       }
@@ -133,7 +138,22 @@ export default function EventManager() {
                 </div>
 
                 <div className="flex gap-3 relative z-10 pt-8 border-t border-white/5">
-                  <button className="flex-1 py-4 rounded-2xl bg-white/5 text-[11px] font-black uppercase tracking-widest hover:bg-white/10 transition-all border border-white/5">Monitor</button>
+                  <button
+                    onClick={() => {
+                      setEditingId(event.id);
+                      setNewEvent({
+                        name: event.name,
+                        startDate: event.startDate.split('T')[0],
+                        endDate: event.endDate.split('T')[0],
+                        formTemplateId: event.formTemplateId || '',
+                        certificateTemplateId: event.certificateTemplateId || ''
+                      });
+                      setIsModalOpen(true);
+                    }}
+                    className="flex-1 py-4 rounded-2xl bg-white/5 text-[11px] font-black uppercase tracking-widest hover:bg-white/10 transition-all border border-white/5"
+                  >
+                    Configure
+                  </button>
                   <button
                     onClick={() => handleDelete(event.id)}
                     className="px-6 py-4 rounded-2xl bg-red-500/5 text-red-500 hover:bg-red-500/10 transition-all border border-red-500/10"

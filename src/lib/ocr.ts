@@ -9,8 +9,14 @@ export async function extractTextFromImage(base64Image: string): Promise<{ text:
 
     console.log(`[OCR] Extracted text (Length: ${text.length}, Confidence: ${confidence}%)`);
 
+    // Basic cleaning and normalization
+    const normalizedText = text
+      .replace(/[^\w\s\n,.-]/g, '') // Remove symbols except basic punctuation
+      .replace(/\s+/g, ' ')         // Normalize whitespace
+      .trim();
+
     return {
-      text: text.trim(),
+      text: normalizedText,
       confidence
     };
   } catch (error) {

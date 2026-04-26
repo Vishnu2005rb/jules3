@@ -38,10 +38,25 @@ export default function SubmitPage() {
   }, [file]);
 
   useEffect(() => {
-    fetch('/api/events')
-      .then(res => res.json())
-      .then(data => setEvents(data))
-      .catch(err => console.error('Failed to load events', err));
+    const searchParams = new URLSearchParams(window.location.search);
+    const eventIdFromUrl = searchParams.get('eventId');
+
+    if (eventIdFromUrl) {
+      fetch(`/api/events/${eventIdFromUrl}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.id) {
+            setSelectedEvent(data);
+            setFormData(prev => ({ ...prev, eventId: data.id }));
+          }
+        })
+        .catch(err => console.error('Failed to load event', err));
+    } else {
+      fetch('/api/events')
+        .then(res => res.json())
+        .then(data => setEvents(data))
+        .catch(err => console.error('Failed to load events', err));
+    }
   }, []);
 
   const handleEventChange = (id: string) => {
@@ -136,15 +151,30 @@ export default function SubmitPage() {
     <div className="min-h-screen bg-[#0a0516] py-24 px-6 text-white font-sans relative overflow-hidden">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-96 bg-purple-600/10 blur-[120px] rounded-full pointer-events-none" />
 
-      <div className="max-w-2xl mx-auto relative z-10">
+      <div className="max-w-4xl mx-auto relative z-10">
         <header className="mb-16 text-center">
-          <motion.h1
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-5xl font-black mb-4 tracking-tight"
-          >
-            Claim Your <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">Certificate</span>
-          </motion.h1>
+          {selectedEvent?.formTemplate?.headerConfig ? (
+            <div className="mb-12 p-10 glass rounded-[40px] border border-white/10 flex flex-col items-center">
+               <div className="flex justify-between w-full mb-8">
+                  {selectedEvent.formTemplate.headerConfig.companyLogo && <img src={selectedEvent.formTemplate.headerConfig.companyLogo} className="h-16 object-contain" />}
+                  {selectedEvent.formTemplate.headerConfig.collegeLogo && <img src={selectedEvent.formTemplate.headerConfig.collegeLogo} className="h-16 object-contain" />}
+               </div>
+               <h1 className="text-4xl font-black mb-2 tracking-tight uppercase text-purple-400">{selectedEvent.formTemplate.headerConfig.eventName || selectedEvent.name}</h1>
+               <p className="text-gray-400 font-bold tracking-widest">{selectedEvent.formTemplate.headerConfig.collegeName}</p>
+               <div className="w-12 h-1 bg-white/10 my-6 rounded-full" />
+               <p className="text-xs font-black uppercase tracking-[0.4em] text-gray-500">Official Submission Protocol</p>
+            </div>
+          ) : (
+            <>
+              <motion.h1
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-5xl font-black mb-4 tracking-tight"
+              >
+                Claim Your <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">Certificate</span>
+              </motion.h1>
+            </>
+          )}
           <div className="flex items-center justify-center gap-4">
             <div className={`w-10 h-1 transition-all duration-500 rounded-full ${step === 1 ? 'bg-purple-500' : 'bg-white/10'}`} />
             <div className={`w-10 h-1 transition-all duration-500 rounded-full ${step === 2 ? 'bg-purple-500' : 'bg-white/10'}`} />
@@ -186,20 +216,22 @@ export default function SubmitPage() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-xs font-black text-gray-500 uppercase tracking-widest ml-1">Select Event</label>
-                  <select
-                    required
-                    className="input-field appearance-none cursor-pointer"
-                    value={formData.eventId}
-                    onChange={e => handleEventChange(e.target.value)}
-                  >
-                    <option value="" className="bg-[#1a0b3c]">Choose an event...</option>
-                    {events.map(event => (
-                      <option key={event.id} value={event.id} className="bg-[#1a0b3c]">{event.name}</option>
-                    ))}
-                  </select>
-                </div>
+                {!selectedEvent && (
+                  <div className="space-y-2">
+                    <label className="text-xs font-black text-gray-500 uppercase tracking-widest ml-1">Select Event</label>
+                    <select
+                      required
+                      className="input-field appearance-none cursor-pointer"
+                      value={formData.eventId}
+                      onChange={e => handleEventChange(e.target.value)}
+                    >
+                      <option value="" className="bg-[#1a0b3c]">Choose an event...</option>
+                      {events.map(event => (
+                        <option key={event.id} value={event.id} className="bg-[#1a0b3c]">{event.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 {selectedEvent?.formTemplate?.fields && (selectedEvent.formTemplate.fields as any[]).map((field, idx) => (
                   <div key={idx} className="space-y-2">

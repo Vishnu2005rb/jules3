@@ -8,17 +8,26 @@ export async function generateCertificatePDF(data: {
   certificateId: string;
   template?: any;
 }) {
-  const pdfDoc = await PDFDocument.create();
-  const page = pdfDoc.addPage([600, 400]);
-  const { width, height } = page.getSize();
-
-  const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-  const regularFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-
-  // Extract config with defaults
   const config = (data.template?.config as any) || {};
-  const primaryColor = hexToRgb(config.primaryColor || '#4f46e5'); // indigo-600
-  const accentColor = hexToRgb(config.accentColor || '#7c3aed'); // violet-600
+  const pdfDoc = await PDFDocument.create();
+
+  // Custom size as per config or default to 800x560
+  const width = config.width || 800;
+  const height = config.height || 560;
+  const page = pdfDoc.addPage([width, height]);
+
+  // Embed standard fonts
+  const fontMap: any = {
+    'sans-serif': await pdfDoc.embedFont(StandardFonts.HelveticaBold),
+    'serif': await pdfDoc.embedFont(StandardFonts.TimesRomanBold),
+    'monospace': await pdfDoc.embedFont(StandardFonts.CourierBold),
+  };
+
+  const regFontMap: any = {
+    'sans-serif': await pdfDoc.embedFont(StandardFonts.Helvetica),
+    'serif': await pdfDoc.embedFont(StandardFonts.TimesRoman),
+    'monospace': await pdfDoc.embedFont(StandardFonts.Courier),
+  };
 
   // Background
   page.drawRectangle({
@@ -26,102 +35,80 @@ export async function generateCertificatePDF(data: {
     y: 0,
     width,
     height,
-    color: rgb(0.98, 0.98, 1),
+    color: rgb(1, 1, 1),
   });
 
-  // Border
-  page.drawRectangle({
-    x: 15,
-    y: 15,
-    width: width - 30,
-    height: height - 30,
-    borderColor: primaryColor,
-    borderWidth: config.borderWidth || 4,
-  });
+  // Border (Rendered as multiple rectangles to simulate thickness if needed, or simple border)
+  if (config.border && config.border.width > 0) {
+    const borderColor = hexToRgb(config.border.color || '#4f46e5');
+    const borderWidth = config.border.width || 12;
 
-  // Secondary inner border for style
-  page.drawRectangle({
-    x: 25,
-    y: 25,
-    width: width - 50,
-    height: height - 50,
-    borderColor: accentColor,
-    borderWidth: 1,
-    opacity: 0.3
-  });
+    page.drawRectangle({
+      x: borderWidth / 2,
+      y: borderWidth / 2,
+      width: width - borderWidth,
+      height: height - borderWidth,
+      borderColor: borderColor,
+      borderWidth: borderWidth,
+    });
 
-  // Header
-  const title = config.title || 'CERTIFICATE OF PARTICIPATION';
-  const titleSize = config.titleFontSize || 26;
-  const titleWidth = font.widthOfTextAtSize(title, titleSize);
-  page.drawText(title, {
-    x: config.titleX !== undefined ? config.titleX : (width - titleWidth) / 2,
-    y: config.titleY || 310,
-    size: titleSize,
-    font,
-    color: primaryColor,
-  });
+    // Inner detail border if radius is set (just a visual hint)
+    if (config.border.radius > 0) {
+      page.drawRectangle({
+        x: borderWidth + 10,
+        y: borderWidth + 10,
+        width: width - (borderWidth * 2) - 20,
+        height: height - (borderWidth * 2) - 20,
+        borderColor: borderColor,
+        borderWidth: 1,
+        opacity: 0.2
+      });
+    }
+  }
 
-  page.drawText('This is to certify that', {
-    x: (width - regularFont.widthOfTextAtSize('This is to certify that', 14)) / 2,
-    y: 265,
-    size: 14,
-    font: regularFont,
-    color: rgb(0.3, 0.3, 0.3),
-  });
+  // Render Elements
+  const elements = config.elements || [];
+  for (const el of elements) {
+    if (el.type === 'text') {
+      let content = el.content;
+      // Replace placeholders
+      content = content.replace('PARTICIPANT NAME', data.name);
+      content = content.replace('EVENT NAME', data.eventName);
+      content = content.replace('2024-05-20', data.date);
+      content = content.replace('CERT-12345-67890', data.certificateId);
 
-  // Name
-  const nameSize = config.nameFontSize || 34;
-  const nameWidth = font.widthOfTextAtSize(data.name, nameSize);
-  page.drawText(data.name, {
-    x: config.nameX !== undefined ? config.nameX : (width - nameWidth) / 2,
-    y: config.nameY || 215,
-    size: nameSize,
-    font,
-    color: accentColor,
-  });
+      const font = fontMap[el.fontFamily] || fontMap['sans-serif'];
+      const fontSize = el.fontSize || 24;
+      const color = hexToRgb(el.color || '#000000');
 
-  const subText = `has successfully participated in ${data.eventName}`;
-  page.drawText(subText, {
-    x: (width - regularFont.widthOfTextAtSize(subText, 14)) / 2,
-    y: 175,
-    size: 14,
-    font: regularFont,
-    color: rgb(0.3, 0.3, 0.3),
-  });
+      let x = el.x;
+      const textWidth = font.widthOfTextAtSize(content, fontSize);
 
-  // Date & ID
-  page.drawText(`Issue Date: ${data.date}`, {
-    x: 60,
-    y: 80,
-    size: 11,
-    font: regularFont,
-    color: rgb(0.5, 0.5, 0.5),
-  });
+      if (el.align === 'center') x = el.x - (textWidth / 2);
+      else if (el.align === 'right') x = el.x - textWidth;
 
-  page.drawText(`Verification ID: ${data.certificateId}`, {
-    x: 60,
-    y: 60,
-    size: 9,
-    font: regularFont,
-    color: rgb(0.6, 0.6, 0.6),
-  });
+      page.drawText(content, {
+        x,
+        y: height - el.y - (fontSize / 2), // Adjust for PDF coordinate system (bottom-left origin)
+        size: fontSize,
+        font,
+        color,
+      });
+    } else if (el.type === 'qr') {
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+      const qrDataUrl = await QRCode.toDataURL(`${baseUrl}/verify/${data.certificateId}`);
+      const base64Data = qrDataUrl.split(',')[1];
+      const qrImageBytes = Buffer.from(base64Data, 'base64');
+      const qrImage = await pdfDoc.embedPng(qrImageBytes);
 
-  // QR Code
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-  const qrDataUrl = await QRCode.toDataURL(`${baseUrl}/verify/${data.certificateId}`);
-
-  // Extract base64 data from Data URL (fix for Node.js environments)
-  const base64Data = qrDataUrl.split(',')[1];
-  const qrImageBytes = Buffer.from(base64Data, 'base64');
-  const qrImage = await pdfDoc.embedPng(qrImageBytes);
-
-  page.drawImage(qrImage, {
-    x: config.qrX || 460,
-    y: config.qrY || 60,
-    width: config.qrSize || 85,
-    height: config.qrSize || 85,
-  });
+      page.drawImage(qrImage, {
+        x: el.x - (el.size / 2),
+        y: height - el.y - (el.size / 2),
+        width: el.size,
+        height: el.size,
+      });
+    }
+  }
 
   const pdfBytes = await pdfDoc.save();
   return pdfBytes;

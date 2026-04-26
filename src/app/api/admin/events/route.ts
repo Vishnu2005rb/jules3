@@ -30,3 +30,25 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Failed to create event' }, { status: 500 });
   }
 }
+
+export async function PUT(req: Request) {
+  try {
+    const data = await req.json();
+    if (!data.id) return NextResponse.json({ error: 'Missing ID' }, { status: 400 });
+
+    const event = await prisma.event.update({
+      where: { id: data.id },
+      data: {
+        name: data.name,
+        startDate: new Date(data.startDate),
+        endDate: new Date(data.endDate),
+        formTemplateId: data.formTemplateId,
+        certificateTemplateId: data.certificateTemplateId,
+      },
+    });
+    return NextResponse.json(event);
+  } catch (error) {
+    console.error('Update event error:', error);
+    return NextResponse.json({ error: 'Failed to update event' }, { status: 500 });
+  }
+}

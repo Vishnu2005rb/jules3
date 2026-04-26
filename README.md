@@ -10,10 +10,12 @@ A premium, production-ready SaaS application for hackathons that automates the v
 - **Design Studio**: Integrated visual builders for custom submission forms and certificate layouts.
 
 ## 🚀 Intelligent Core Features
-- **AI-Powered OCR**: Automated text extraction and validation from review screenshots.
+- **AI-Powered OCR**: Real Tesseract.js integration with advanced text normalization and scoring (keywords, fuzzy name matching).
+- **Layout Studio (Canvas)**: Professional certificate builder with precise X/Y positioning, element dragging, and copy-paste functionality.
+- **Dynamic Protocols**: Configurable form headers with custom logos and branding, unique to each event.
 - **Cryptographic Trust**: Certificates feature unique Ledger IDs and QR codes for instant public verification.
 - **Fraud Intelligence**: Image hashing (SHA-256) and similarity checks to prevent duplicate claims.
-- **Automated Workflow**: Real-time scoring and instant dispatch of high-quality PDFs via SMTP.
+- **Automated Workflow**: Real-time scoring and instant dispatch of custom-designed PDFs via SMTP.
 
 ---
 
