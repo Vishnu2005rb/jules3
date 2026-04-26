@@ -28,11 +28,12 @@ model CertificateTemplate {
 }
 
 model FormTemplate {
-  id        String   @id @default(cuid())
-  name      String
-  fields    Json     // [{ label: string, type: string, required: boolean, options?: string[] }]
-  createdAt DateTime @default(now())
-  events    Event[]
+  id           String   @id @default(cuid())
+  name         String
+  fields       Json     // [{ label: string, type: string, required: boolean, options?: string[] }]
+  headerConfig Json?    // { logoCompany?: string, logoCollege?: string, collegeName?: string, companyName?: string, layout?: string }
+  createdAt    DateTime @default(now())
+  events       Event[]
 }
 
 model UserSubmission {

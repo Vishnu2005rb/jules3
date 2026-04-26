@@ -34,7 +34,11 @@ export function nameMatches(submittedName: string, extractedText: string): boole
   const parts = normalizedName.split(/\s+/).filter(p => p.length > 2);
   if (parts.length === 0) return false;
 
-  return parts.every(part => normalizedText.includes(part));
+  // Check if at least 2 parts match if name has multiple parts, or the only part matches
+  const matchCount = parts.filter(part => normalizedText.includes(part)).length;
+
+  if (parts.length === 1) return matchCount === 1;
+  return matchCount >= Math.min(parts.length, 2);
 }
 
 /**
@@ -69,24 +73,34 @@ export function calculateVerificationScore(data: {
   if (data.ocrConfidence < 20 && data.extractedText.length < 10) return 10;
 
   // Contains event or company name
-  if (data.extractedText.toLowerCase().includes(data.eventName.toLowerCase())) {
+  const normalizedText = data.extractedText.toLowerCase();
+  const normalizedEvent = data.eventName.toLowerCase();
+
+  if (normalizedText.includes(normalizedEvent)) {
     score += 30;
   }
 
+  // Keyword detection
+  const keywords = ['review', 'experience', 'hackathon', 'event', 'great', 'awesome', 'learned', 'star'];
+  const foundKeywords = keywords.filter(k => normalizedText.includes(k));
+  score += Math.min(foundKeywords.length * 5, 20); // Up to 20 points for keywords
+
   // Meaningful text length
-  if (data.extractedText.length > 50) score += 20;
-  else if (data.extractedText.length > 20) score += 10;
+  if (data.extractedText.length > 100) score += 20;
+  else if (data.extractedText.length > 50) score += 15;
+  else if (data.extractedText.length > 20) score += 5;
 
   // Valid review link (basic check)
-  if (data.reviewLink.includes('google.com') || data.reviewLink.includes('g.page')) {
-    score += 20;
+  if (data.reviewLink && (data.reviewLink.includes('google.com') || data.reviewLink.includes('g.page') || data.reviewLink.includes('maps'))) {
+    score += 15;
   }
 
   // OCR confidence bonus
-  if (data.ocrConfidence > 80) score += 10;
+  if (data.ocrConfidence > 85) score += 10;
+  else if (data.ocrConfidence > 60) score += 5;
 
   // Name match bonus
-  if (data.nameMatched) score += 20;
+  if (data.nameMatched) score += 25;
 
   return Math.min(score, 100);
 }
