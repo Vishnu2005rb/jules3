@@ -919,7 +919,6 @@ function Canvas(p: CanvasProps) {
         cursor:'grab', userSelect:'none', boxSizing:'border-box',
         outline: p.selectedId === el.id ? '2px solid #6366f1' : '1px dashed rgba(99,102,241,0.25)',
         outlineOffset: 2, borderRadius: 4,
-        transition: 'outline 0.15s ease, box-shadow 0.15s ease',
         boxShadow: p.selectedId === el.id ? '0 0 0 4px rgba(99,102,241,0.15)' : 'none',
         transition: 'outline 0.12s ease, box-shadow 0.12s ease' }}>
       {el.type === 'text' ? (
