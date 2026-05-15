@@ -1,111 +1,54 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { extractReviewSimple, validateSimple } from '@/lib/paddleOCRValidation';
-import { processSuccessfulCertificate } from '@/lib/certificateService';
-import { getImageHash, checkDuplicateSubmission } from '@/lib/verification';
+import { processUserSubmission } from '@/lib/services/submissionService';
+import { submissionSchema } from '@/lib/validation/schemas';
+import { rateLimit, getIP } from '@/lib/rateLimit';
 
 export async function POST(req: Request) {
   try {
+    // Rate Limiting (5 submissions per 10 minutes per IP)
+    const ip = getIP(req);
+    const limiter = rateLimit(`submission_${ip}`, 5, 10 * 60 * 1000);
+
+    if (!limiter.success) {
+      return NextResponse.json({
+        error: 'Too many submissions. Please try again later.'
+      }, {
+        status: 429,
+        headers: {
+          'Retry-After': Math.ceil((limiter.reset - Date.now()) / 1000).toString()
+        }
+      });
+    }
+
     const body = await req.json();
-    const { name, email, phone, eventId, reviewImageUrl, reviewLink, socialLinks, dynamicFields } = body;
 
-    if (!name || !email || !eventId || !reviewImageUrl) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    // Validation
+    const validation = submissionSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json({
+        error: 'Validation failed',
+        details: validation.error.format()
+      }, { status: 400 });
     }
 
-    const event = await prisma.event.findUnique({
-      where: { id: eventId },
-      include: { formTemplate: true, certificateTemplate: true }
-    });
-    if (!event) return NextResponse.json({ error: 'Event not found' }, { status: 404 });
+    const result = await processUserSubmission(validation.data);
 
-    // Inclusive end-of-day check
-    const now = new Date();
-    const endOfDay = new Date(event.endDate);
-    endOfDay.setHours(23, 59, 59, 999);
-    if (now < event.startDate || now > endOfDay) {
-      return NextResponse.json({ error: 'Submissions for this event are currently closed.' }, { status: 403 });
-    }
-
-    const imageHash = getImageHash(reviewImageUrl);
-
-    // ── DUPLICATE CHECK (BEFORE OCR) ─────────────────────────────────────────
-    // Order: name+email+event → email+event → image hash
-    const duplicateCheck = await checkDuplicateSubmission(name, email, eventId, imageHash);
-    if (duplicateCheck.isDuplicate) {
+    if ('isDuplicate' in result && result.isDuplicate) {
       return NextResponse.json(
-        { error: duplicateCheck.reason, code: 'DUPLICATE' },
+        { error: result.reason, code: 'DUPLICATE' },
         { status: 400 }
       );
     }
 
-    // ── OCR VALIDATION FLOW ──────────────────────────────────────────────────
-    // Step 1: Run analyze.py — PaddleOCR + OpenCV HSV star detection
-    const ocrResult = await extractReviewSimple(reviewImageUrl, name);
+    return NextResponse.json(result);
 
-    // Step 2: Validate (star rule + text quality → approved / hold)
-    const validation = validateSimple(ocrResult);
+  } catch (error: any) {
+    console.error('Submission failed:', error);
 
-    console.log(`[Submission] name="${name}" reviewer="${ocrResult.reviewerName}" matched=${validation.nameMatched} stars=${validation.starRating}`);
-    console.log(`[Submission] review="${ocrResult.reviewText.substring(0, 100)}" quality=${validation.reviewQuality} score=${validation.score} status=${validation.status}`);
-    console.log(`[Submission] reason="${validation.reason}"`);
-
-    // Build initial processing log with OCR result
-    const initialLog = [
-      {
-        step: 'ocr_complete',
-        level: validation.status === 'approved' ? 'success' : 'info',
-        message: `OCR analysis complete — ${validation.reason}`,
-        data: {
-          reviewerName: ocrResult.reviewerName,
-          starRating: ocrResult.starRating,
-          nameMatched: validation.nameMatched,
-          analyzeStatus: ocrResult.analyzeResult?.status,
-          reviewPreview: ocrResult.reviewText.substring(0, 100),
-          scoreBreakdown: validation.scoreBreakdown,
-        },
-        timestamp: new Date().toISOString(),
-      },
-    ];
-
-    const submission = await prisma.userSubmission.create({
-      data: {
-        name,
-        email: email.toLowerCase().trim(),
-        phone: phone || '',
-        eventId,
-        reviewImageUrl,
-        imageHash,
-        extractedText: ocrResult.reviewText || ocrResult.rawText.substring(0, 500),
-        reviewLink,
-        verificationScore: validation.score,
-        starRating: validation.starRating,
-        status: validation.status,
-        socialLinks: socialLinks || {},
-        dynamicFields: dynamicFields || {},
-        processingLog: initialLog,
-      }
-    });
-
-    // Send certificate only if approved
-    if (validation.status === 'approved') {
-      processSuccessfulCertificate({
-        ...submission,
-        event: { name: event.name, certificateTemplate: event.certificateTemplate }
-      }).catch(err => console.error('[Async Error] Cert generation failed:', err));
+    if (error.message.includes('not found') || error.message.includes('closed')) {
+      return NextResponse.json({ error: error.message }, { status: 403 });
     }
 
-    return NextResponse.json({
-      message: 'Submission received successfully',
-      id: submission.id,
-      score: validation.score,
-      status: validation.status,
-      nameMatched: validation.nameMatched,
-      reviewQuality: validation.reviewQuality,
-    });
-
-  } catch (error) {
-    console.error('Submission failed:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

@@ -30,7 +30,14 @@ export async function middleware(request: NextRequest) {
         throw new Error('Token expired');
       }
 
-      return NextResponse.next();
+      const response = NextResponse.next();
+
+      // Add security headers to admin responses
+      response.headers.set('X-Frame-Options', 'DENY');
+      response.headers.set('X-Content-Type-Options', 'nosniff');
+      response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+
+      return response;
     } catch (err) {
       const response = NextResponse.redirect(new URL('/admin/login', request.url));
       response.cookies.delete('admin_token');

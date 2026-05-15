@@ -26,10 +26,15 @@ export function getCanonicalEmail(email: string): string {
 
   const [local, domain] = trimmed.split('@');
 
-  // Handle common providers that ignore dots and plus signs (Gmail, Outlook, etc.)
-  if (['gmail.com', 'googlemail.com', 'outlook.com', 'hotmail.com'].includes(domain)) {
-    // Remove everything after '+' and remove all '.' in the local part
+  // Gmail ignores dots and plus signs
+  if (['gmail.com', 'googlemail.com'].includes(domain)) {
     const canonicalLocal = local.split('+')[0].replace(/\./g, '');
+    return `${canonicalLocal}@${domain}`;
+  }
+
+  // Outlook/Hotmail ignore plus signs but NOT dots
+  if (['outlook.com', 'hotmail.com'].includes(domain)) {
+    const canonicalLocal = local.split('+')[0];
     return `${canonicalLocal}@${domain}`;
   }
 
