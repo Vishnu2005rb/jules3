@@ -77,12 +77,21 @@ export async function generateCertificatePDF(data: {
   }
 
   // Sanitize input data - remove characters that WinAnsi can't encode
-  const sanitize = (s: string) => s
-    .replace(/[\r\n\t]/g, ' ')
-    .replace(/[\x00-\x1F\x7F]/g, '')
-    .replace(/[^\x20-\xFF]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
+  // We improve this to be more transparent if characters are removed.
+  const sanitize = (s: string) => {
+    const original = s;
+    const sanitized = s
+      .replace(/[\r\n\t]/g, ' ')
+      .replace(/[\x00-\x1F\x7F]/g, '')
+      .replace(/[^\x20-\xFF]/g, '') // Remove non-WinAnsi characters
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (original.length > 0 && sanitized.length !== original.length) {
+      console.warn(`[Certificate] Sanitize: Characters removed from "${original}" during PDF generation (WinAnsi constraint)`);
+    }
+    return sanitized;
+  };
 
   const safeName = sanitize(data.name);
   const safeEventName = sanitize(data.eventName);

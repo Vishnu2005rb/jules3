@@ -21,7 +21,7 @@ export async function appendLog(submissionId: string, entry: Omit<LogEntry, 'tim
       select: { processingLog: true }
     });
 
-    const existing: LogEntry[] = (submission?.processingLog as LogEntry[]) || [];
+    const existing = (submission?.processingLog as any[]) || [];
     const newEntry: LogEntry = { ...entry, timestamp: new Date().toISOString() };
 
     await prisma.userSubmission.update({

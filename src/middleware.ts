@@ -2,7 +2,13 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'hackathon-default-secret-key-2024');
+const secretValue = process.env.JWT_SECRET;
+if (!secretValue) {
+  // In a real production app, this should always be set.
+  // We throw an error to prevent starting with a known weak key.
+  throw new Error('JWT_SECRET environment variable is missing. Please set it in your .env file.');
+}
+const JWT_SECRET = new TextEncoder().encode(secretValue);
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;

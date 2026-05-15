@@ -21,6 +21,7 @@ async function main() {
     create: {
       id: 'default-event-id',
       name: 'Global AI Hackathon 2024',
+      eventCode: 'GLOBAL2024',
       startDate: new Date('2024-01-01'),
       endDate: new Date('2024-12-31'),
     },

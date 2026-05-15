@@ -16,6 +16,26 @@ export function getImageHash(base64Image: string): string {
  * This means two people with the same name but different emails can both submit.
  * Only the exact same person (name + email) is blocked from submitting twice.
  */
+/**
+ * Normalizes an email address to detect common evasion techniques like
+ * plus-addressing (user+extra@gmail.com) and dots in the local part.
+ */
+export function getCanonicalEmail(email: string): string {
+  const trimmed = email.toLowerCase().trim();
+  if (!trimmed.includes('@')) return trimmed;
+
+  const [local, domain] = trimmed.split('@');
+
+  // Handle common providers that ignore dots and plus signs (Gmail, Outlook, etc.)
+  if (['gmail.com', 'googlemail.com', 'outlook.com', 'hotmail.com'].includes(domain)) {
+    // Remove everything after '+' and remove all '.' in the local part
+    const canonicalLocal = local.split('+')[0].replace(/\./g, '');
+    return `${canonicalLocal}@${domain}`;
+  }
+
+  return trimmed;
+}
+
 export async function checkDuplicateSubmission(
   name: string,
   email: string,
@@ -23,6 +43,7 @@ export async function checkDuplicateSubmission(
   imageHash: string
 ): Promise<{ isDuplicate: boolean; reason?: string }> {
   const normalizedEmail = email.toLowerCase().trim();
+  const canonicalEmail = getCanonicalEmail(email);
   const normalizedName  = name.trim().toLowerCase();
 
   // Check 1: Same name AND same email for this event → definite duplicate
@@ -42,14 +63,18 @@ export async function checkDuplicateSubmission(
   }
 
   // Check 2: Same email for this event (name might differ slightly — still same person)
-  const sameEmailSameEvent = await prisma.userSubmission.findFirst({
-    where: { eventId, email: normalizedEmail },
-    select: { id: true },
+  // We use canonicalEmail matching here to catch variations of the same email
+  const allSubmissionsForEvent = await prisma.userSubmission.findMany({
+    where: { eventId },
+    select: { id: true, email: true },
   });
-  if (sameEmailSameEvent) {
+
+  const emailVariation = allSubmissionsForEvent.find(s => getCanonicalEmail(s.email) === canonicalEmail);
+
+  if (emailVariation) {
     return {
       isDuplicate: true,
-      reason: 'This email address has already been used to submit a review for this event.',
+      reason: 'This email address (or a variation of it) has already been used to submit a review for this event.',
     };
   }
 
