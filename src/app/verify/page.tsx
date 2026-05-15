@@ -2,71 +2,67 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
 
 export default function VerifySearchPage() {
   const [certId, setCertId] = useState('');
   const router = useRouter();
 
-  const handleVerify = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (certId.trim()) {
-      router.push(`/verify/${certId.trim()}`);
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-[#0a0516] text-white flex items-center justify-center p-6 font-sans relative overflow-hidden">
-      {/* Background Decor */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-900/10 blur-[120px] rounded-full animate-pulse-glow" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-900/10 blur-[120px] rounded-full animate-pulse-glow" />
+    <div className="min-h-screen flex items-center justify-center p-6 font-sans"
+      style={{ background: 'var(--bg-page)', color: 'var(--text-primary)' }}>
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }} className="max-w-md w-full">
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="max-w-xl w-full relative z-10"
-      >
-        <div className="text-center mb-12">
-          <motion.div
-            initial={{ scale: 0.8 }}
-            animate={{ scale: 1 }}
-            className="inline-block w-20 h-20 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center text-4xl mb-8 shadow-2xl"
-          >
-            🛡️
-          </motion.div>
-          <h1 className="text-5xl font-black mb-4 tracking-tight">Trust <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">Verification</span></h1>
-          <p className="text-gray-500 font-bold text-sm tracking-widest uppercase">Validate cryptographic authenticity</p>
+        <Link href="/" className="inline-flex items-center gap-1.5 text-sm mb-8 transition-colors"
+          style={{ color: 'var(--text-muted)' }}>
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+          </svg>
+          Back to Home
+        </Link>
+
+        <div className="text-center mb-8">
+          <div className="inline-flex w-14 h-14 rounded-xl items-center justify-center mb-5"
+            style={{ background: 'var(--brand-light)', border: '1px solid var(--brand-border)' }}>
+            <svg className="w-7 h-7" style={{ color: 'var(--brand)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+            </svg>
+          </div>
+          <h1 className="text-2xl font-bold mb-1" style={{ color: 'var(--text-primary)' }}>Verify Certificate</h1>
+          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Enter a certificate ID to check its authenticity</p>
         </div>
 
-        <form onSubmit={handleVerify} className="glass p-10 md:p-14 rounded-[40px] border border-white/5 shadow-2xl space-y-8">
-          <div className="space-y-4">
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-1">Certificate ID</label>
-            <input
-              type="text"
-              required
-              placeholder="e.g. CERT-1713987456-AX92"
-              className="input-field text-center font-mono text-lg tracking-wider"
-              value={certId}
-              onChange={e => setCertId(e.target.value)}
-            />
-          </div>
+        <div className="card p-6 sm:p-8">
+          <form onSubmit={e => { e.preventDefault(); if (certId.trim()) router.push(`/verify/${certId.trim()}`); }}
+            className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-widest mb-2"
+                style={{ color: 'var(--text-muted)' }}>Certificate ID</label>
+              <input
+                suppressHydrationWarning
+                type="text"
+                required
+                placeholder="e.g. CER_HACKATHON_0001"
+                className="input-field font-mono text-center tracking-wider"
+                value={certId}
+                onChange={e => setCertId(e.target.value)}
+              />
+            </div>
+            <button suppressHydrationWarning type="submit"
+              className="w-full py-3 rounded-lg text-sm font-semibold text-white transition-all"
+              style={{ background: 'var(--brand)' }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'var(--brand-dark)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'var(--brand)')}>
+              Verify Certificate
+            </button>
+          </form>
+        </div>
 
-          <button
-            type="submit"
-            className="w-full py-5 rounded-2xl bg-purple-600 hover:bg-purple-500 font-black text-xs transition-all shadow-xl shadow-purple-600/20 uppercase tracking-[0.2em] group"
-          >
-            <span className="group-hover:scale-110 inline-block transition-transform">Initialize Protocol</span>
-          </button>
-        </form>
-
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="mt-12 text-center text-gray-600 text-xs font-bold uppercase tracking-tighter"
-        >
-          Secured by CertiVerify AI Cryptographic Infrastructure
-        </motion.p>
+        <p className="mt-5 text-center text-xs" style={{ color: 'var(--text-muted)' }}>
+          Certificate IDs are included in the email sent after approval.
+        </p>
       </motion.div>
     </div>
   );

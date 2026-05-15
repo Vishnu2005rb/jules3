@@ -10,6 +10,7 @@ datasource db {
 model Event {
   id                    String               @id @default(cuid())
   name                  String
+  eventCode             String               @unique
   formTemplateId        String?
   formTemplate          FormTemplate?        @relation(fields: [formTemplateId], references: [id])
   certificateTemplateId String?
@@ -44,13 +45,15 @@ model UserSubmission {
   eventId           String
   event             Event        @relation(fields: [eventId], references: [id])
   reviewImageUrl    String?
-  imageHash         String?      // MD5 or SHA256 of the image to detect duplicates
+  imageHash         String?
   extractedText     String?
   reviewLink        String?
   verificationScore Int          @default(0)
-  status            String       @default("pending") // pending, approved, rejected, hold
-  socialLinks       Json?        // { linkedin?: string, instagram?: string }
-  dynamicFields     Json?        // { [fieldLabel]: value }
+  starRating        Int?         // Star rating detected by OCR (1-5), null if not detected
+  status            String       @default("pending")
+  socialLinks       Json?
+  dynamicFields     Json?
+  processingLog     Json?        // [{ step, message, level, timestamp, data? }]
   createdAt         DateTime     @default(now())
   certificate       Certificate?
 

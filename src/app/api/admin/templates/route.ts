@@ -7,18 +7,52 @@ export async function GET(req: Request) {
     const type = searchParams.get('type'); // 'form' or 'certificate'
 
     if (type === 'form') {
-      const templates = await prisma.formTemplate.findMany();
+      const templates = await prisma.formTemplate.findMany({
+        include: {
+          events: {
+            select: {
+              id: true,
+              name: true
+            }
+          }
+        }
+      });
       return NextResponse.json(templates);
     } else if (type === 'certificate') {
-      const templates = await prisma.certificateTemplate.findMany();
+      const templates = await prisma.certificateTemplate.findMany({
+        include: {
+          events: {
+            select: {
+              id: true,
+              name: true
+            }
+          }
+        }
+      });
       return NextResponse.json(templates);
     }
 
     const forms = await prisma.formTemplate.findMany({
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
+      include: {
+        events: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
+      }
     });
     const certs = await prisma.certificateTemplate.findMany({
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
+      include: {
+        events: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
+      }
     });
     return NextResponse.json({ forms, certs });
   } catch (error) {

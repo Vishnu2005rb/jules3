@@ -4,263 +4,309 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 
+function AdminNav({ active }: { active: string }) {
+  const links = [
+    { href: '/admin/dashboard', label: 'Submissions' },
+    { href: '/admin/events',    label: 'Events' },
+    { href: '/admin/analytics', label: 'Analytics' },
+    { href: '/admin/templates', label: 'Templates' },
+  ];
+  return (
+    <nav style={{ background: 'var(--bg-surface)', borderBottom: '1px solid var(--border-default)' }}
+      className="sticky top-0 z-40">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+        <div className="flex items-center gap-6">
+          <span className="text-sm font-bold" style={{ color: 'var(--brand)' }}>CertiVerify Admin</span>
+          <div className="hidden sm:flex items-center gap-1">
+            {links.map(l => (
+              <Link key={l.href} href={l.href}
+                className="px-3 py-1.5 rounded-lg text-sm font-medium transition-all"
+                style={{
+                  color: active === l.label ? 'var(--brand)' : 'var(--text-muted)',
+                  background: active === l.label ? 'var(--brand-light)' : 'transparent',
+                }}>
+                {l.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+        <Link href="/" className="text-xs transition-colors" style={{ color: 'var(--text-muted)' }}>← Public Site</Link>
+      </div>
+    </nav>
+  );
+}
+
 export default function EventManager() {
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [forms, setForms] = useState<any[]>([]);
   const [certs, setCerts] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+  const [submitError, setSubmitError] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [newEvent, setNewEvent] = useState({
-    name: '',
-    startDate: '',
-    endDate: '',
-    formTemplateId: '',
-    certificateTemplateId: ''
+    name: '', eventCode: '', startDate: '', endDate: '',
+    formTemplateId: '', certificateTemplateId: ''
   });
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [eventsRes, templatesRes] = await Promise.all([
-        fetch('/api/admin/events'),
-        fetch('/api/admin/templates')
+      const [evRes, tplRes] = await Promise.all([
+        fetch('/api/admin/events'), fetch('/api/admin/templates')
       ]);
-      const eventsData = await eventsRes.json();
-      const templatesData = await templatesRes.json();
-
-      setEvents(eventsData);
-      setForms(templatesData.forms || []);
-      setCerts(templatesData.certs || []);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+      const evData  = await evRes.json();
+      const tplData = await tplRes.json();
+      setEvents(Array.isArray(evData) ? evData : []);
+      setForms(tplData.forms || []);
+      setCerts(tplData.certs || []);
+    } catch { setEvents([]); }
+    finally { setLoading(false); }
   };
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError('');
     try {
       const method = editingId ? 'PUT' : 'POST';
-      const body = editingId ? { ...newEvent, id: editingId } : newEvent;
-
-      const res = await fetch('/api/admin/events', {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
+      const body   = editingId ? { ...newEvent, id: editingId } : newEvent;
+      const res    = await fetch('/api/admin/events', {
+        method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
       });
-      if (res.ok) {
-        setIsModalOpen(false);
-        setEditingId(null);
-        fetchData();
-        setNewEvent({ name: '', startDate: '', endDate: '', formTemplateId: '', certificateTemplateId: '' });
-      }
-    } catch (err) {
-      console.error(err);
-    }
+      const data = await res.json();
+      if (!res.ok) { setSubmitError(data.error || 'Failed to save event.'); return; }
+      setIsModalOpen(false); setEditingId(null); setSubmitError('');
+      fetchData();
+      setNewEvent({ name: '', eventCode: '', startDate: '', endDate: '', formTemplateId: '', certificateTemplateId: '' });
+    } catch { setSubmitError('Network error. Please try again.'); }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Cancel this event and remove all associated data?')) return;
-    try {
-      await fetch(`/api/admin/events?id=${id}`, { method: 'DELETE' });
-      fetchData();
-    } catch (err) {
-      console.error(err);
-    }
+    if (!confirm('Delete this event and all associated data?')) return;
+    await fetch(`/api/admin/events?id=${id}`, { method: 'DELETE' });
+    fetchData();
+  };
+
+  const now = new Date();
+  const getStatus = (ev: any) => {
+    if (new Date(ev.endDate) < now) return { label: 'Ended',  color: 'badge-neutral' };
+    if (new Date(ev.startDate) > now) return { label: 'Upcoming', color: 'badge-info' };
+    return { label: 'Active', color: 'badge-success' };
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0516] text-white p-6 md:p-12 font-sans relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-[400px] h-[400px] bg-blue-600/5 blur-[100px] rounded-full pointer-events-none" />
+    <div className="min-h-screen font-sans" style={{ background: 'var(--bg-page)', color: 'var(--text-primary)' }}>
+      <AdminNav active="Events" />
 
-      <div className="max-w-7xl mx-auto relative z-10">
-        <header className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8 mb-16">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-          >
-            <Link href="/admin/dashboard" className="text-purple-400 text-xs font-black tracking-widest uppercase hover:text-purple-300 transition-colors mb-4 inline-block">← Management Portal</Link>
-            <h1 className="text-4xl md:text-5xl font-black tracking-tight">Event <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Controller</span></h1>
-            <p className="text-gray-500 font-medium text-lg mt-1">Deploy and monitor automated hackathon pipelines</p>
-          </motion.div>
-          <motion.button
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            onClick={() => setIsModalOpen(true)}
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 px-10 py-5 rounded-2xl font-black text-sm hover:shadow-[0_0_30px_rgba(37,99,235,0.3)] transition-all group"
-          >
-            <span className="group-hover:scale-110 inline-block transition-transform">Initialize New Event</span>
-          </motion.button>
-        </header>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Events</h1>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>Create and manage certification events</p>
+          </div>
+          <button onClick={() => { setEditingId(null); setNewEvent({ name: '', eventCode: '', startDate: '', endDate: '', formTemplateId: '', certificateTemplateId: '' }); setIsModalOpen(true); }}
+            className="px-4 py-2.5 rounded-lg text-sm font-semibold text-white transition-all"
+            style={{ background: 'var(--brand)' }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'var(--brand-dark)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'var(--brand)')}>
+            + Create Event
+          </button>
+        </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-40">
-             <div className="w-14 h-14 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          <div className="flex items-center justify-center py-24">
+            <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin"
+              style={{ borderColor: 'var(--border-default)', borderTopColor: 'var(--brand)' }} />
+          </div>
+        ) : events.length === 0 ? (
+          <div className="card p-16 text-center">
+            <p className="font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>No events yet</p>
+            <p className="text-sm mb-5" style={{ color: 'var(--text-muted)' }}>Create your first event to get started.</p>
+            <button onClick={() => setIsModalOpen(true)}
+              className="px-4 py-2 rounded-lg text-sm font-semibold text-white"
+              style={{ background: 'var(--brand)' }}>
+              Create Event
+            </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-            {events.map((event, idx) => (
-              <motion.div
-                key={event.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.1 }}
-                className="glass-dark border border-white/5 p-10 rounded-[40px] group hover:border-blue-500/30 transition-all relative overflow-hidden flex flex-col h-full shadow-2xl"
-              >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 blur-3xl rounded-full -mr-10 -mt-10 transition-all" />
-
-                <div className="relative z-10 flex-grow">
-                  <div className="flex justify-between items-start mb-6">
-                    <div className="px-3 py-1 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-widest">
-                      Live Environment
-                    </div>
-                    <div className="text-[10px] font-black text-gray-700 tracking-tighter uppercase">{event.id.substring(0, 10)}</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {events.map((event, idx) => {
+              const status = getStatus(event);
+              return (
+                <motion.div key={event.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.06 }} className="card p-5 flex flex-col">
+                  <div className="flex items-start justify-between mb-3">
+                    <span className={`badge ${status.color}`}>{status.label}</span>
+                    <button onClick={() => navigator.clipboard.writeText(event.eventCode)}
+                      className="text-xs px-2 py-1 rounded-md font-mono font-semibold transition-all"
+                      style={{ background: 'var(--brand-light)', color: 'var(--brand)', border: '1px solid var(--brand-border)' }}
+                      title="Click to copy">
+                      {event.eventCode}
+                    </button>
                   </div>
-                  <h3 className="text-2xl font-black mb-6 group-hover:text-blue-300 transition-colors tracking-tight">{event.name}</h3>
 
-                  <div className="space-y-4 mb-10">
-                    <div className="flex items-center justify-between text-xs font-bold text-gray-500">
-                       <span className="uppercase tracking-widest text-[9px] font-black opacity-50">Timeline</span>
-                       <span>{new Date(event.startDate).toLocaleDateString()} — {new Date(event.endDate).toLocaleDateString()}</span>
+                  <h3 className="font-semibold text-base mb-3 leading-tight" style={{ color: 'var(--text-primary)' }}>
+                    {event.name}
+                  </h3>
+
+                  <div className="space-y-2 text-sm flex-1" style={{ color: 'var(--text-muted)' }}>
+                    <div className="flex justify-between">
+                      <span>Dates</span>
+                      <span style={{ color: 'var(--text-secondary)' }}>
+                        {new Date(event.startDate).toLocaleDateString()} – {new Date(event.endDate).toLocaleDateString()}
+                      </span>
                     </div>
-                    <div className="flex items-center justify-between text-xs font-bold text-gray-500">
-                       <span className="uppercase tracking-widest text-[9px] font-black opacity-50">Submissions</span>
-                       <span className="text-white">{event._count?.submissions || 0} Records</span>
+                    <div className="flex justify-between">
+                      <span>Submissions</span>
+                      <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+                        {event._count?.submissions || 0}
+                      </span>
+                    </div>
+                    <div className="flex justify-between pt-2" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                      <span>Form</span>
+                      <span style={{ color: event.formTemplate ? 'var(--success)' : 'var(--text-muted)' }}>
+                        {event.formTemplate?.name || 'Not assigned'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Certificate</span>
+                      <span style={{ color: event.certificateTemplate ? 'var(--success)' : 'var(--text-muted)' }}>
+                        {event.certificateTemplate?.name || 'Not assigned'}
+                      </span>
                     </div>
                   </div>
-                </div>
 
-                <div className="flex gap-3 relative z-10 pt-8 border-t border-white/5">
-                  <button
-                    onClick={() => {
+                  <div className="flex gap-2 mt-4 pt-4" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                    <button onClick={() => {
                       setEditingId(event.id);
                       setNewEvent({
-                        name: event.name,
-                        startDate: event.startDate.split('T')[0],
-                        endDate: event.endDate.split('T')[0],
-                        formTemplateId: event.formTemplateId || '',
-                        certificateTemplateId: event.certificateTemplateId || ''
+                        name: event.name, eventCode: event.eventCode,
+                        startDate: event.startDate.split('T')[0], endDate: event.endDate.split('T')[0],
+                        formTemplateId: event.formTemplateId || '', certificateTemplateId: event.certificateTemplateId || ''
                       });
                       setIsModalOpen(true);
                     }}
-                    className="flex-1 py-4 rounded-2xl bg-white/5 text-[11px] font-black uppercase tracking-widest hover:bg-white/10 transition-all border border-white/5"
-                  >
-                    Configure
-                  </button>
-                  <button
-                    onClick={() => handleDelete(event.id)}
-                    className="px-6 py-4 rounded-2xl bg-red-500/5 text-red-500 hover:bg-red-500/10 transition-all border border-red-500/10"
-                  >
-                    🗑️
-                  </button>
-                </div>
-              </motion.div>
-            ))}
-
-            {events.length === 0 && (
-              <div className="col-span-full py-40 text-center glass rounded-[40px] border-2 border-dashed border-white/5 text-gray-600">
-                <div className="text-7xl mb-8 opacity-10">🌍</div>
-                <p className="text-xl font-bold">The environment is quiet.</p>
-                <p className="text-sm font-medium mt-2">Scale your reach by deploying your first event.</p>
-              </div>
-            )}
+                      className="flex-1 py-2 rounded-lg text-xs font-semibold transition-all"
+                      style={{ background: 'var(--bg-surface-2)', color: 'var(--text-secondary)', border: '1px solid var(--border-default)' }}>
+                      Edit
+                    </button>
+                    <button onClick={() => handleDelete(event.id)}
+                      className="px-3 py-2 rounded-lg text-xs font-semibold transition-all"
+                      style={{ background: 'var(--error-bg)', color: 'var(--error-text)', border: '1px solid var(--error-border)' }}>
+                      Delete
+                    </button>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         )}
       </div>
 
-      {/* Initialize Event Modal */}
+      {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 backdrop-blur-2xl bg-black/80">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="bg-[#0f0720] border border-white/10 w-full max-w-2xl overflow-hidden rounded-[48px] flex flex-col shadow-2xl"
-          >
-            <div className="p-10 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
-              <h2 className="text-3xl font-black tracking-tight">Deploy Event</h2>
-              <button onClick={() => setIsModalOpen(false)} className="text-gray-500 hover:text-white text-3xl font-light">&times;</button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: 'var(--bg-overlay)' }}>
+          <motion.div initial={{ opacity: 0, scale: 0.97, y: 12 }} animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="w-full max-w-lg rounded-xl shadow-xl flex flex-col max-h-[90vh]"
+            style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-default)' }}>
+
+            <div className="flex items-center justify-between px-6 py-4"
+              style={{ borderBottom: '1px solid var(--border-default)' }}>
+              <h2 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+                {editingId ? 'Edit Event' : 'Create Event'}
+              </h2>
+              <button onClick={() => { setIsModalOpen(false); setSubmitError(''); }}
+                className="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
+                style={{ background: 'var(--bg-surface-2)', color: 'var(--text-muted)' }}>✕</button>
             </div>
 
-            <form onSubmit={handleCreate} className="p-10 space-y-8">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-1">Event Designation</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Global AI Hackathon 2026"
-                  className="input-field"
-                  value={newEvent.name}
-                  onChange={e => setNewEvent({...newEvent, name: e.target.value})}
-                />
+            <form id="event-form" onSubmit={handleCreate} className="overflow-y-auto flex-1 px-6 py-5 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-widest mb-1.5"
+                  style={{ color: 'var(--text-muted)' }}>Event Name</label>
+                <input suppressHydrationWarning type="text" required placeholder="e.g. Global AI Hackathon 2026"
+                  className="input-field" value={newEvent.name}
+                  onChange={e => setNewEvent({ ...newEvent, name: e.target.value })} />
               </div>
-
-              <div className="grid grid-cols-2 gap-8">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-1">Activation Date</label>
-                  <input
-                    type="date"
-                    required
-                    className="input-field"
-                    value={newEvent.startDate}
-                    onChange={e => setNewEvent({...newEvent, startDate: e.target.value})}
-                  />
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-widest mb-1.5"
+                  style={{ color: 'var(--text-muted)' }}>Event Code</label>
+                <input suppressHydrationWarning type="text" required placeholder="e.g. HACK2026"
+                  className="input-field text-center font-mono font-bold tracking-widest uppercase"
+                  value={newEvent.eventCode}
+                  onChange={e => setNewEvent({ ...newEvent, eventCode: e.target.value.toUpperCase() })} />
+                <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+                  Users enter this code to access the submission form
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-widest mb-1.5"
+                    style={{ color: 'var(--text-muted)' }}>Start Date</label>
+                  <input suppressHydrationWarning type="date" required className="input-field" value={newEvent.startDate}
+                    onChange={e => setNewEvent({ ...newEvent, startDate: e.target.value })} />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-1">Termination Date</label>
-                  <input
-                    type="date"
-                    required
-                    className="input-field"
-                    value={newEvent.endDate}
-                    onChange={e => setNewEvent({...newEvent, endDate: e.target.value})}
-                  />
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-widest mb-1.5"
+                    style={{ color: 'var(--text-muted)' }}>End Date</label>
+                  <input suppressHydrationWarning type="date" required className="input-field" value={newEvent.endDate}
+                    onChange={e => setNewEvent({ ...newEvent, endDate: e.target.value })} />
                 </div>
               </div>
-
-              <div className="grid grid-cols-2 gap-8">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-1">Form Schema</label>
-                  <select
-                    required
-                    className="input-field appearance-none"
-                    value={newEvent.formTemplateId}
-                    onChange={e => setNewEvent({...newEvent, formTemplateId: e.target.value})}
-                  >
-                    <option value="">Select Protocol...</option>
-                    {forms.map(f => <option key={f.id} value={f.id} className="bg-[#1a0b3c]">{f.name}</option>)}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-widest mb-1.5"
+                    style={{ color: 'var(--text-muted)' }}>Form Template</label>
+                  <select className="input-field appearance-none" value={newEvent.formTemplateId}
+                    onChange={e => setNewEvent({ ...newEvent, formTemplateId: e.target.value })}>
+                    <option value="">None</option>
+                    {forms.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
                   </select>
+                  {forms.length === 0 && (
+                    <Link href="/admin/templates" className="text-xs mt-1 inline-block" style={{ color: 'var(--brand)' }}>
+                      Create template first →
+                    </Link>
+                  )}
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-1">Certificate Layout</label>
-                  <select
-                    required
-                    className="input-field appearance-none"
-                    value={newEvent.certificateTemplateId}
-                    onChange={e => setNewEvent({...newEvent, certificateTemplateId: e.target.value})}
-                  >
-                    <option value="">Select Blueprint...</option>
-                    {certs.map(c => <option key={c.id} value={c.id} className="bg-[#1a0b3c]">{c.name}</option>)}
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-widest mb-1.5"
+                    style={{ color: 'var(--text-muted)' }}>Certificate Template</label>
+                  <select className="input-field appearance-none" value={newEvent.certificateTemplateId}
+                    onChange={e => setNewEvent({ ...newEvent, certificateTemplateId: e.target.value })}>
+                    <option value="">None</option>
+                    {certs.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
+                  {certs.length === 0 && (
+                    <Link href="/admin/templates" className="text-xs mt-1 inline-block" style={{ color: 'var(--brand)' }}>
+                      Create template first →
+                    </Link>
+                  )}
                 </div>
               </div>
-
-              <div className="pt-6 flex justify-end gap-6">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="px-8 py-4 text-xs font-black text-gray-500 hover:text-white transition-all uppercase tracking-widest">Cancel</button>
-                <button
-                  type="submit"
-                  className="bg-blue-600 px-10 py-4 rounded-2xl font-black text-xs hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/20 uppercase tracking-widest"
-                >
-                  Confirm Deployment
-                </button>
-              </div>
+              {submitError && (
+                <div className="p-3 rounded-lg text-sm" style={{ background: 'var(--error-bg)', color: 'var(--error-text)', border: '1px solid var(--error-border)' }}>
+                  {submitError}
+                </div>
+              )}
             </form>
+
+            <div className="flex justify-end gap-3 px-6 py-4" style={{ borderTop: '1px solid var(--border-default)' }}>
+              <button type="button" onClick={() => { setIsModalOpen(false); setSubmitError(''); }}
+                className="px-4 py-2 rounded-lg text-sm font-semibold transition-all"
+                style={{ background: 'var(--bg-surface-2)', color: 'var(--text-secondary)', border: '1px solid var(--border-default)' }}>
+                Cancel
+              </button>
+              <button type="submit" form="event-form"
+                className="px-5 py-2 rounded-lg text-sm font-semibold text-white transition-all"
+                style={{ background: 'var(--brand)' }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'var(--brand-dark)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'var(--brand)')}>
+                {editingId ? 'Save Changes' : 'Create Event'}
+              </button>
+            </div>
           </motion.div>
         </div>
       )}

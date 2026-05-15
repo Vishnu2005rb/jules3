@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
       allowedOrigins: ["*"],
     },
   },
+  // Tell Next.js not to bundle these server-side packages
+  serverExternalPackages: ['tesseract.js', 'canvas'],
+  // Hide the Next.js dev indicator (the "N" badge in the corner)
+  devIndicators: false,
   // To handle the secure proxy Host header
   async headers() {
     return [

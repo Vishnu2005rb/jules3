@@ -1,215 +1,250 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { useState } from 'react';
 
 export default function LandingPage() {
-  const [recentUsers, setRecentUsers] = useState<any[]>([]);
-
-  useEffect(() => {
-    fetch('/api/social-proof')
-      .then(res => res.json())
-      .then(data => setRecentUsers(data))
-      .catch(err => console.error('Failed to load social proof', err));
-  }, []);
-
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const item = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 }
-  };
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [codeError, setCodeError] = useState<string | null>(null);
+  const [codeChecking, setCodeChecking] = useState(false);
+  const [codeValue, setCodeValue] = useState('');
 
   return (
-    <div className="min-h-screen bg-[#0a0516] text-white selection:bg-purple-500/30 font-sans relative overflow-hidden">
-      {/* Dynamic Background Glows */}
-      <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-purple-600/10 blur-[120px] rounded-full -translate-x-1/2 -translate-y-1/2 animate-pulse-glow" />
-      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-blue-600/10 blur-[120px] rounded-full translate-x-1/2 translate-y-1/2 animate-pulse-glow" />
-      <div className="absolute top-1/2 left-1/2 w-[300px] h-[300px] bg-indigo-600/5 blur-[100px] rounded-full -translate-x-1/2 -translate-y-1/2" />
+    <div className="min-h-screen font-sans" style={{ background: 'var(--bg-page)', color: 'var(--text-primary)' }}>
 
-      {/* Navigation */}
-      <motion.nav
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        className="container mx-auto px-6 py-8 flex justify-between items-center relative z-20"
-      >
-        <div className="text-2xl font-black tracking-tighter bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent glow-text-purple">
-          CertiVerify AI
-        </div>
-        <div className="space-x-8 hidden md:flex items-center">
-          <Link href="#features" className="text-sm font-medium hover:text-purple-400 transition-colors text-gray-400">Features</Link>
-          <Link href="/verify" className="text-sm font-medium hover:text-purple-400 transition-colors text-gray-400">Verify</Link>
-          <Link href="/admin/login" className="text-sm font-medium hover:text-purple-400 transition-colors text-gray-400">Admin</Link>
-          <Link href="/submit" className="glass px-8 py-3 rounded-2xl font-bold text-sm border border-purple-500/20 hover:border-purple-500/40 hover:bg-purple-500/10 transition-all duration-300 shadow-[0_0_15px_rgba(168,85,247,0.1)]">
-            Get Certified
-          </Link>
-        </div>
-      </motion.nav>
+      {/* ── Nav ── */}
+      <nav style={{ background: 'var(--bg-surface)', borderBottom: '1px solid var(--border-default)' }}
+        className="sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+          <span className="text-base font-bold" style={{ color: 'var(--brand)' }}>CertiVerify</span>
 
-      {/* Hero Section */}
-      <main className="container mx-auto px-6 pt-24 pb-32 relative z-10">
-        <div className="max-w-5xl mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5 }}
-          >
-            <span className="inline-block px-4 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-bold tracking-widest uppercase mb-8">
-              AI-Powered Verification Engine
-            </span>
-            <h1 className="text-6xl md:text-8xl font-black mb-8 leading-[1.1] tracking-tight text-white">
-              Automated Trust for <br />
-              <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-500 bg-clip-text text-transparent">Hackathon Heroes</span>
-            </h1>
-            <p className="text-gray-400 text-xl md:text-2xl mb-12 max-w-2xl mx-auto leading-relaxed">
-              Submit your reviews, let our AI verify your impact, and claim your official certificates in seconds.
-            </p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="flex flex-col sm:flex-row gap-6 justify-center items-center"
-          >
-            <Link href="/submit" className="group relative w-full sm:w-auto">
-              <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-300" />
-              <div className="relative bg-white text-black px-12 py-5 rounded-2xl font-black text-lg hover:bg-gray-100 transition duration-300 text-center">
-                Submit Review
-              </div>
+          <div className="hidden md:flex items-center gap-1">
+            <button suppressHydrationWarning
+              onClick={() => document.getElementById('submit-section')?.scrollIntoView({ behavior: 'smooth' })}
+              className="px-3 py-1.5 text-sm rounded-lg transition-all" style={{ color: 'var(--text-muted)' }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-surface-2)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+              Submit
+            </button>
+            <Link href="/verify" className="px-3 py-1.5 text-sm rounded-lg transition-all" style={{ color: 'var(--text-muted)' }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-surface-2)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+              Verify
             </Link>
-            <Link href="/verify" className="w-full sm:w-auto glass-dark px-12 py-5 rounded-2xl font-bold text-lg border border-white/5 hover:border-white/20 transition duration-300 text-center">
+            <Link href="/admin/login" className="px-3 py-1.5 text-sm rounded-lg transition-all" style={{ color: 'var(--text-muted)' }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-surface-2)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+              Admin
+            </Link>
+            <button suppressHydrationWarning
+              onClick={() => document.getElementById('submit-section')?.scrollIntoView({ behavior: 'smooth' })}
+              className="ml-2 px-4 py-1.5 rounded-lg text-sm font-semibold text-white transition-all"
+              style={{ background: 'var(--brand)' }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'var(--brand-dark)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'var(--brand)')}>
+              Get Certified
+            </button>
+          </div>
+
+          <button suppressHydrationWarning
+            className="md:hidden p-2 rounded-lg" style={{ border: '1px solid var(--border-default)' }}
+            onClick={() => setMobileMenuOpen(true)} aria-label="Open menu">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M4 7h16M4 12h16M4 17h16" />
+            </svg>
+          </button>
+        </div>
+      </nav>
+
+      {/* ── Mobile menu ── */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div className="fixed inset-0 z-[60]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={() => setMobileMenuOpen(false)} />
+            <motion.div initial={{ y: -16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -16, opacity: 0 }}
+              className="absolute left-3 right-3 top-3 rounded-xl shadow-xl overflow-hidden"
+              style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-default)' }}>
+              <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid var(--border-default)' }}>
+                <span className="font-semibold text-sm">Menu</span>
+                <button suppressHydrationWarning
+                  onClick={() => setMobileMenuOpen(false)} className="w-8 h-8 rounded-lg flex items-center justify-center text-sm"
+                  style={{ background: 'var(--bg-surface-2)' }}>✕</button>
+              </div>
+              <div className="p-3 space-y-1">
+                <button suppressHydrationWarning
+                  onClick={() => { setMobileMenuOpen(false); document.getElementById('submit-section')?.scrollIntoView({ behavior: 'smooth' }); }}
+                  className="w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+                  Submit Review
+                </button>
+                <Link href="/verify" onClick={() => setMobileMenuOpen(false)}
+                  className="block px-3 py-2.5 rounded-lg text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+                  Verify Certificate
+                </Link>
+                <Link href="/admin/login" onClick={() => setMobileMenuOpen(false)}
+                  className="block px-3 py-2.5 rounded-lg text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+                  Admin Portal
+                </Link>
+                <button suppressHydrationWarning
+                  onClick={() => { setMobileMenuOpen(false); document.getElementById('submit-section')?.scrollIntoView({ behavior: 'smooth' }); }}
+                  className="w-full px-3 py-2.5 rounded-lg text-sm font-semibold text-white text-center" style={{ background: 'var(--brand)' }}>
+                  Get Certified
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Hero ── */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 pt-20 pb-16 text-center">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold mb-6"
+            style={{ background: 'var(--brand-light)', color: 'var(--brand)', border: '1px solid var(--brand-border)' }}>
+            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'var(--brand)' }} />
+            AI-Powered Certificate Platform
+          </span>
+
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-5 leading-tight tracking-tight"
+            style={{ color: 'var(--text-primary)' }}>
+            Verify Reviews.<br />
+            <span style={{ color: 'var(--brand)' }}>Issue Certificates.</span>
+          </h1>
+
+          <p className="text-base sm:text-lg mb-8 max-w-xl mx-auto leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+            Submit your Google review, let our AI verify it, and receive your official certificate automatically — in seconds.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <button suppressHydrationWarning
+              onClick={() => document.getElementById('submit-section')?.scrollIntoView({ behavior: 'smooth' })}
+              className="px-6 py-3 rounded-lg text-sm font-semibold text-white transition-all"
+              style={{ background: 'var(--brand)', boxShadow: 'var(--shadow-md)' }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'var(--brand-dark)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'var(--brand)')}>
+              Submit Review →
+            </button>
+            <Link href="/verify" className="px-6 py-3 rounded-lg text-sm font-semibold transition-all text-center"
+              style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-default)', color: 'var(--text-secondary)', boxShadow: 'var(--shadow-sm)' }}>
               Verify Certificate
             </Link>
-          </motion.div>
-        </div>
-      </main>
-
-      {/* Social Proof */}
-      {recentUsers.length > 0 && (
-        <section className="py-16 relative">
-          <div className="container mx-auto px-6">
-            <motion.div
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              className="flex flex-wrap justify-center gap-4"
-            >
-              {recentUsers.map((user, i) => (
-                <motion.div
-                  key={user.id}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: i * 0.1 }}
-                  className="glass px-6 py-3 rounded-2xl flex items-center gap-3 border border-white/5 hover:border-purple-500/30 transition-all duration-300 group cursor-default"
-                >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 flex items-center justify-center text-xs font-black shadow-lg">
-                    {user.name.charAt(0)}
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-gray-200 group-hover:text-white transition-colors">{user.name}</p>
-                    <p className="text-[10px] text-purple-400 font-bold uppercase tracking-tighter">{user.event?.name}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </motion.div>
           </div>
-        </section>
-      )}
+        </motion.div>
+      </section>
 
-      {/* Features Grid */}
-      <section id="features" className="py-32 relative">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-black mb-6">Built for the Future</h2>
-            <p className="text-gray-500 text-lg">Scalable, secure, and entirely automated.</p>
+      {/* ── Submit form + How it works ── */}
+      <section id="submit-section" className="max-w-6xl mx-auto px-4 sm:px-6 pb-24 scroll-mt-16">
+        <div className="max-w-md mx-auto">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Submit Your Review</h2>
+            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+              Enter the event code provided by your organizer.
+            </p>
           </div>
 
-          <motion.div
-            variants={container}
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true }}
-            className="grid md:grid-cols-3 gap-8"
-          >
-            <FeatureCard
-              title="AI-OCR Verification"
-              description="Proprietary OCR engine extracts and validates participation data with 99% accuracy."
-              icon="🤖"
-              delay={0.1}
-            />
-            <FeatureCard
-              title="Dynamic Generation"
-              description="Instant high-quality PDF issuance with custom templates and dynamic fields."
-              icon="📄"
-              delay={0.2}
-            />
-            <FeatureCard
-              title="Public Verification"
-              description="Cryptographic hashing ensures every certificate is tamper-proof and verifiable."
-              icon="✅"
-              delay={0.3}
-            />
-          </motion.div>
+          <div className="card p-6 sm:p-8 mb-6">
+            <form onSubmit={async e => {
+              e.preventDefault();
+              const code = codeValue.trim();
+              if (!code) return;
+              setCodeError(null);
+              setCodeChecking(true);
+              try {
+                const res = await fetch(`/api/events/${encodeURIComponent(code)}?byCode=true`);
+                const data = await res.json();
+                if (data.id) {
+                  window.location.href = `/submit?code=${encodeURIComponent(code)}`;
+                } else {
+                  setCodeError('Invalid event code. Please check with your organizer and try again.');
+                }
+              } catch {
+                setCodeError('Could not verify the code. Check your connection and try again.');
+              } finally {
+                setCodeChecking(false);
+              }
+            }} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-widest mb-2"
+                  style={{ color: 'var(--text-muted)' }}>Event Code</label>
+                <input
+                  type="text"
+                  required
+                  value={codeValue}
+                  onChange={e => { setCodeValue(e.target.value.toUpperCase()); setCodeError(null); }}
+                  placeholder="e.g. HACK2026"
+                  className="w-full rounded-lg px-4 py-3.5 text-xl font-bold text-center uppercase tracking-widest focus:outline-none transition-all"
+                  style={{
+                    background: codeError ? 'var(--error-bg)' : 'var(--bg-surface-2)',
+                    border: `1px solid ${codeError ? 'var(--error-border)' : 'var(--border-default)'}`,
+                    color: 'var(--text-primary)',
+                  }}
+                  suppressHydrationWarning
+                />
+                <AnimatePresence>
+                  {codeError && (
+                    <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                      className="mt-2 text-xs flex items-center gap-1.5" style={{ color: 'var(--error-text)' }}>
+                      <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                      </svg>
+                      {codeError}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              <button suppressHydrationWarning
+                type="submit" disabled={codeChecking || !codeValue.trim()}
+                className="w-full py-3 rounded-lg text-sm font-semibold text-white transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                style={{ background: 'var(--brand)' }}
+                onMouseEnter={e => { if (!codeChecking) e.currentTarget.style.background = 'var(--brand-dark)'; }}
+                onMouseLeave={e => (e.currentTarget.style.background = 'var(--brand)')}>
+                {codeChecking
+                  ? <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />Verifying...</>
+                  : 'Continue →'}
+              </button>
+            </form>
+
+            <div className="mt-5 pt-5 flex gap-3 items-start" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+                style={{ background: 'var(--info-bg)', border: '1px solid var(--info-border)' }}>
+                <svg className="w-3.5 h-3.5" style={{ color: 'var(--info)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                </svg>
+              </div>
+              <p className="text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+                Your event code is provided by the organizer. Check your registration email or event dashboard.
+              </p>
+            </div>
+          </div>
+
+          {/* How it works */}
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { step: '1', title: 'Submit',    desc: 'Upload your Google review screenshot with your event code.' },
+              { step: '2', title: 'AI Verify', desc: 'Our OCR engine validates your review authenticity.' },
+              { step: '3', title: 'Get Cert',  desc: 'Certificate generated and emailed to you instantly.' },
+            ].map(item => (
+              <div key={item.step} className="card p-4 text-center">
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold text-white mx-auto mb-2"
+                  style={{ background: 'var(--brand)' }}>{item.step}</div>
+                <p className="text-xs font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>{item.title}</p>
+                <p className="text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>{item.desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-24 glass-dark border-y border-white/5 relative">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
-            <StatItem label="Certificates Issued" value="1,240+" />
-            <StatItem label="Global Events" value="64" />
-            <StatItem label="Processing Speed" value="< 1.5s" />
-            <StatItem label="Happy Users" value="98%" />
-          </div>
+      {/* ── Footer ── */}
+      <footer className="max-w-6xl mx-auto px-4 sm:px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-3"
+        style={{ borderTop: '1px solid var(--border-default)' }}>
+        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>© 2026 CertiVerify. Tarcin Robotic LLP.</p>
+        <div className="flex items-center gap-5">
+          <Link href="/verify" className="text-sm transition-colors" style={{ color: 'var(--text-muted)' }}>Verify Certificate</Link>
+          <Link href="/admin/login" className="text-sm transition-colors" style={{ color: 'var(--text-muted)' }}>Admin</Link>
         </div>
-      </section>
-
-      <footer className="py-20 text-center">
-        <p className="text-gray-600 text-sm font-medium">
-          © 2026 CertiVerify AI. Part of the Hackathon Global Infrastructure.
-        </p>
       </footer>
     </div>
-  );
-}
-
-function FeatureCard({ title, description, icon, delay }: { title: string, description: string, icon: string, delay: number }) {
-  return (
-    <motion.div
-      variants={{
-        hidden: { opacity: 0, y: 20 },
-        show: { opacity: 1, y: 0 }
-      }}
-      className="p-10 rounded-[32px] glass border border-white/5 hover:border-purple-500/30 transition-all duration-500 group relative overflow-hidden"
-    >
-      <div className="absolute top-0 right-0 w-32 h-32 bg-purple-600/5 blur-3xl rounded-full -mr-10 -mt-10 group-hover:bg-purple-600/10 transition-all" />
-      <div className="text-5xl mb-8 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-500 inline-block">{icon}</div>
-      <h3 className="text-2xl font-black mb-4 text-white group-hover:text-purple-300 transition-colors">{title}</h3>
-      <p className="text-gray-500 leading-relaxed text-lg group-hover:text-gray-400 transition-colors">{description}</p>
-    </motion.div>
-  );
-}
-
-function StatItem({ label, value }: { label: string, value: string }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-    >
-      <div className="text-4xl md:text-5xl font-black bg-gradient-to-b from-white to-gray-500 bg-clip-text text-transparent mb-2">
-        {value}
-      </div>
-      <div className="text-xs font-black text-purple-400 uppercase tracking-widest">{label}</div>
-    </motion.div>
   );
 }

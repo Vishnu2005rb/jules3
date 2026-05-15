@@ -1,0 +1,255 @@
+﻿
+// ─── LEFT SIDEBAR ─────────────────────────────────────────────────────────────
+interface LeftSidebarProps {
+  currentSection: SectionType;
+  formName: string; nameError: string; onNameChange: (v: string) => void;
+  headerElements: HeaderElement[]; footerElements: FooterElement[];
+  selectedId: string | null;
+  onSelectEl: (id: string) => void; onDeleteEl: (id: string) => void;
+  onAddLogo: () => void; onAddText: () => void;
+  onAddFooterLogo: () => void; onAddFooterText: () => void;
+  onAddFooterLinkedin: () => void; onAddFooterInstagram: () => void;
+  headerWidth: number; headerHeight: number;
+  headerBackground: string; headerBackgroundImage?: string; headerBackgroundFit: 'cover'|'contain';
+  onHeaderWidthChange: (v: number) => void; onHeaderHeightChange: (v: number) => void;
+  onHeaderBgChange: (v: string) => void; onHeaderBgUpload: () => void;
+  onHeaderBgRemove: () => void; onHeaderBgFitChange: (v: 'cover'|'contain') => void;
+  footerWidth: number; footerHeight: number;
+  footerBackground: string; footerBackgroundImage?: string; footerBackgroundFit: 'cover'|'contain';
+  onFooterWidthChange: (v: number) => void; onFooterHeightChange: (v: number) => void;
+  onFooterBgChange: (v: string) => void; onFooterBgUpload: () => void;
+  onFooterBgRemove: () => void; onFooterBgFitChange: (v: 'cover'|'contain') => void;
+  footerText: string; footerSocials: string;
+  onFooterTextChange: (v: string) => void; onFooterSocialsChange: (v: string) => void;
+  customFields: CustomField[];
+  onAddField: () => void; onUpdateField: (id: string, patch: Partial<CustomField>) => void; onDeleteField: (id: string) => void;
+}
+
+function LeftSidebar(p: LeftSidebarProps) {
+  const inp = "w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all placeholder:text-gray-400";
+  const lbl = "block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5";
+  const card = "bg-white rounded-2xl border border-gray-200/80 p-4 space-y-3 shadow-sm";
+  const sectionTitle = "flex items-center gap-2 text-xs font-bold text-gray-700 mb-3";
+
+  const addBtn = (label: string, icon: string, onClick: () => void, color = 'indigo') => (
+    <button onClick={onClick}
+      className={`flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-xs font-semibold transition-all hover:shadow-sm active:scale-95 border ${
+        color === 'indigo' ? 'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100' :
+        color === 'emerald' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' :
+        color === 'sky' ? 'bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-100' :
+        'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'
+      }`}>
+      <span className="text-base leading-none">{icon}</span>{label}
+    </button>
+  );
+
+  return (
+    <div className="h-full flex flex-col bg-transparent">
+      {/* Template name */}
+      <div className="px-4 pt-4 pb-3 border-b border-gray-200/60">
+        <label className={lbl}>Template Name</label>
+        <input className={`${inp} ${p.nameError ? 'border-red-400 ring-2 ring-red-100' : ''}`}
+          value={p.formName} onChange={e => p.onNameChange(e.target.value)} placeholder="My Form Template" />
+        {p.nameError && <p className="text-red-500 text-[10px] mt-1 font-medium">{p.nameError}</p>}
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-3">
+
+        {/* ── HEADER SECTION ── */}
+        {p.currentSection === 'header' && (
+          <>
+            <div className={card}>
+              <p className={sectionTitle}><span>📐</span> Canvas Size</p>
+              <div className="grid grid-cols-2 gap-2">
+                <div><label className={lbl}>Width</label>
+                  <input type="number" min={200} max={1400} className={inp} value={p.headerWidth} onChange={e => p.onHeaderWidthChange(Number(e.target.value))} /></div>
+                <div><label className={lbl}>Height</label>
+                  <input type="number" min={60} max={400} className={inp} value={p.headerHeight} onChange={e => p.onHeaderHeightChange(Number(e.target.value))} /></div>
+              </div>
+            </div>
+
+            <div className={card}>
+              <p className={sectionTitle}><span>🎨</span> Background</p>
+              <div className="flex items-center gap-2">
+                <input type="color" className="w-10 h-10 rounded-xl cursor-pointer border-2 border-gray-200 p-0.5 bg-white" value={p.headerBackground} onChange={e => p.onHeaderBgChange(e.target.value)} />
+                <input type="text" className={`${inp} flex-1`} value={p.headerBackground} onChange={e => p.onHeaderBgChange(e.target.value)} />
+              </div>
+              <div className="flex gap-2">
+                <button onClick={p.onHeaderBgUpload} className="flex-1 text-xs bg-gray-50 hover:bg-gray-100 text-gray-700 px-3 py-2 rounded-xl border border-gray-200 font-semibold transition-all">
+                  {p.headerBackgroundImage ? '↑ Replace BG' : '↑ Upload BG'}
+                </button>
+                {p.headerBackgroundImage && (
+                  <button onClick={p.onHeaderBgRemove} className="text-xs text-red-500 hover:bg-red-50 px-3 py-2 rounded-xl border border-red-200 font-semibold transition-all">Remove</button>
+                )}
+              </div>
+              {p.headerBackgroundImage && (
+                <select className={inp} value={p.headerBackgroundFit} onChange={e => p.onHeaderBgFitChange(e.target.value as 'cover'|'contain')}>
+                  <option value="cover">Cover</option><option value="contain">Contain</option>
+                </select>
+              )}
+            </div>
+
+            <div className={card}>
+              <p className={sectionTitle}><span>➕</span> Add Elements</p>
+              <div className="grid grid-cols-2 gap-2">
+                {addBtn('Logo', '🖼', p.onAddLogo, 'indigo')}
+                {addBtn('Text', 'T', p.onAddText, 'emerald')}
+              </div>
+            </div>
+
+            {p.headerElements.length > 0 && (
+              <div className={card}>
+                <p className={sectionTitle}><span>🗂</span> Layers ({p.headerElements.length})</p>
+                <div className="space-y-1">
+                  {[...p.headerElements].reverse().map(el => (
+                    <div key={el.id} role="button" tabIndex={0}
+                      onClick={() => p.onSelectEl(el.id)}
+                      onKeyDown={e => e.key === 'Enter' && p.onSelectEl(el.id)}
+                      className={`flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer text-xs font-medium transition-all ${
+                        p.selectedId === el.id ? 'bg-indigo-100 text-indigo-800 border border-indigo-300' : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'
+                      }`}>
+                      <span className="flex items-center gap-2">
+                        <span>{el.type === 'logo' ? '🖼' : 'T'}</span>
+                        <span className="truncate max-w-[90px]">{el.type === 'text' ? (el.content?.slice(0,16) || 'Text') : 'Logo'}</span>
+                      </span>
+                      <button onClick={e => { e.stopPropagation(); p.onDeleteEl(el.id); }} className="text-gray-300 hover:text-red-500 transition-colors ml-1">×</button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ── BODY SECTION ── */}
+        {p.currentSection === 'body' && (
+          <>
+            <div className={card}>
+              <div className="flex items-center justify-between mb-3">
+                <p className={sectionTitle} style={{marginBottom:0}}><span>📝</span> Custom Fields</p>
+                <button onClick={p.onAddField} className="text-[10px] bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg font-bold transition-colors shadow-sm">+ Add</button>
+              </div>
+              {p.customFields.length === 0 && (
+                <div className="text-center py-5 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+                  <p className="text-xs text-gray-400 font-medium">No custom fields yet</p>
+                  <p className="text-[10px] text-gray-300 mt-0.5">Click + Add to create one</p>
+                </div>
+              )}
+              <div className="space-y-2">
+                {p.customFields.map(f => (
+                  <div key={f.id} className="bg-gray-50 rounded-xl p-3 border border-gray-200 hover:border-indigo-200 transition-all">
+                    <div className="flex items-center gap-2 mb-2">
+                      <input type="text" className="flex-1 text-xs bg-white border border-gray-200 rounded-lg px-2 py-1.5 text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-indigo-400 transition-all"
+                        value={f.label} onChange={e => p.onUpdateField(f.id, { label: e.target.value })} placeholder="Field label" />
+                      <button onClick={() => p.onDeleteField(f.id)} className="text-gray-300 hover:text-red-500 transition-colors text-sm">×</button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <select className="flex-1 text-xs bg-white border border-gray-200 rounded-lg px-2 py-1.5 text-gray-800 focus:outline-none focus:border-indigo-400 transition-all"
+                        value={f.type} onChange={e => p.onUpdateField(f.id, { type: e.target.value as CustomField['type'] })}>
+                        <option value="text">Text</option><option value="number">Number</option>
+                        <option value="date">Date</option><option value="select">Select</option>
+                      </select>
+                      <label className="flex items-center gap-1.5 text-[10px] text-gray-600 font-semibold cursor-pointer select-none whitespace-nowrap">
+                        <input type="checkbox" checked={f.required} onChange={e => p.onUpdateField(f.id, { required: e.target.checked })} className="accent-indigo-600" />Required
+                      </label>
+                    </div>
+                    {f.type === 'select' && (
+                      <input type="text" className="w-full mt-2 text-xs bg-white border border-gray-200 rounded-lg px-2 py-1.5 text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-indigo-400 transition-all"
+                        value={f.options ?? ''} onChange={e => p.onUpdateField(f.id, { options: e.target.value })} placeholder="opt1, opt2, opt3" />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className={card}>
+              <p className={sectionTitle}><span>🔒</span> Static Fields (Fixed)</p>
+              <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-3 space-y-1.5">
+                {['Full Name *', 'Email Address *', 'Phone Number *', 'Screenshot Upload *'].map(f => (
+                  <div key={f} className="flex items-center gap-2 text-xs text-indigo-700 font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 shrink-0" />{f}
+                  </div>
+                ))}
+                <p className="text-[10px] text-indigo-400 mt-2">These fields cannot be removed.</p>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ── FOOTER SECTION ── */}
+        {p.currentSection === 'footer' && (
+          <>
+            <div className={card}>
+              <p className={sectionTitle}><span>📐</span> Canvas Size</p>
+              <div className="grid grid-cols-2 gap-2">
+                <div><label className={lbl}>Width</label>
+                  <input type="number" min={200} max={1400} className={inp} value={p.footerWidth} onChange={e => p.onFooterWidthChange(Number(e.target.value))} /></div>
+                <div><label className={lbl}>Height</label>
+                  <input type="number" min={60} max={240} className={inp} value={p.footerHeight} onChange={e => p.onFooterHeightChange(Number(e.target.value))} /></div>
+              </div>
+            </div>
+
+            <div className={card}>
+              <p className={sectionTitle}><span>��</span> Background</p>
+              <div className="flex items-center gap-2">
+                <input type="color" className="w-10 h-10 rounded-xl cursor-pointer border-2 border-gray-200 p-0.5 bg-white" value={p.footerBackground} onChange={e => p.onFooterBgChange(e.target.value)} />
+                <input type="text" className={`${inp} flex-1`} value={p.footerBackground} onChange={e => p.onFooterBgChange(e.target.value)} />
+              </div>
+              <div className="flex gap-2">
+                <button onClick={p.onFooterBgUpload} className="flex-1 text-xs bg-gray-50 hover:bg-gray-100 text-gray-700 px-3 py-2 rounded-xl border border-gray-200 font-semibold transition-all">
+                  {p.footerBackgroundImage ? '↑ Replace BG' : '↑ Upload BG'}
+                </button>
+                {p.footerBackgroundImage && (
+                  <button onClick={p.onFooterBgRemove} className="text-xs text-red-500 hover:bg-red-50 px-3 py-2 rounded-xl border border-red-200 font-semibold transition-all">Remove</button>
+                )}
+              </div>
+            </div>
+
+            <div className={card}>
+              <p className={sectionTitle}><span>➕</span> Add Elements</p>
+              <div className="grid grid-cols-2 gap-2">
+                {addBtn('Logo', '🖼', p.onAddFooterLogo, 'indigo')}
+                {addBtn('Text', 'T', p.onAddFooterText, 'emerald')}
+                {addBtn('LinkedIn', '💼', p.onAddFooterLinkedin, 'sky')}
+                {addBtn('Instagram', '📷', p.onAddFooterInstagram, 'rose')}
+              </div>
+            </div>
+
+            <div className={card}>
+              <p className={sectionTitle}><span>📄</span> Footer Settings</p>
+              <div className="space-y-2">
+                <div><label className={lbl}>Footer Text</label>
+                  <input type="text" className={inp} value={p.footerText} onChange={e => p.onFooterTextChange(e.target.value)} placeholder="© 2024 Your Organization" /></div>
+                <div><label className={lbl}>Social Links (comma-separated)</label>
+                  <input type="text" className={inp} value={p.footerSocials} onChange={e => p.onFooterSocialsChange(e.target.value)} placeholder="https://linkedin.com/..." /></div>
+              </div>
+            </div>
+
+            {p.footerElements.length > 0 && (
+              <div className={card}>
+                <p className={sectionTitle}><span>🗂</span> Layers ({p.footerElements.length})</p>
+                <div className="space-y-1">
+                  {[...p.footerElements].reverse().map(el => (
+                    <div key={el.id} role="button" tabIndex={0}
+                      onClick={() => p.onSelectEl(el.id)}
+                      onKeyDown={e => e.key === 'Enter' && p.onSelectEl(el.id)}
+                      className={`flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer text-xs font-medium transition-all ${
+                        p.selectedId === el.id ? 'bg-indigo-100 text-indigo-800 border border-indigo-300' : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'
+                      }`}>
+                      <span className="flex items-center gap-2">
+                        <span>{el.type === 'logo' ? '🖼' : el.type === 'linkedin' ? '💼' : el.type === 'instagram' ? '��' : 'T'}</span>
+                        <span className="truncate max-w-[90px]">{el.type === 'text' ? (el.content?.slice(0,16) || 'Text') : el.type}</span>
+                      </span>
+                      <button onClick={e => { e.stopPropagation(); p.onDeleteEl(el.id); }} className="text-gray-300 hover:text-red-500 transition-colors ml-1">×</button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
