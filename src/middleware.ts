@@ -4,9 +4,7 @@ import { jwtVerify } from 'jose';
 
 const secretValue = process.env.JWT_SECRET;
 if (!secretValue) {
-  // In a real production app, this should always be set.
-  // We throw an error to prevent starting with a known weak key.
-  throw new Error('JWT_SECRET environment variable is missing. Please set it in your .env file.');
+  throw new Error('JWT_SECRET environment variable is missing.');
 }
 const JWT_SECRET = new TextEncoder().encode(secretValue);
 
@@ -30,14 +28,7 @@ export async function middleware(request: NextRequest) {
         throw new Error('Token expired');
       }
 
-      const response = NextResponse.next();
-
-      // Add security headers to admin responses
-      response.headers.set('X-Frame-Options', 'DENY');
-      response.headers.set('X-Content-Type-Options', 'nosniff');
-      response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-
-      return response;
+      return NextResponse.next();
     } catch (err) {
       const response = NextResponse.redirect(new URL('/admin/login', request.url));
       response.cookies.delete('admin_token');

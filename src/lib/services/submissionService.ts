@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { extractReviewSimple, validateSimple } from '@/lib/paddleOCRValidation';
 import { processSuccessfulCertificate } from '@/lib/certificateService';
-import { getImageHash, checkDuplicateSubmission } from '@/lib/verification';
+import { getImageHash, checkDuplicateSubmission, getCanonicalEmail } from '@/lib/verification';
 
 export interface SubmissionData {
   name: string;
@@ -24,7 +24,6 @@ export async function processUserSubmission(data: SubmissionData) {
 
   if (!event) throw new Error('Event not found');
 
-  // Date check
   const now = new Date();
   const endOfDay = new Date(event.endDate);
   endOfDay.setHours(23, 59, 59, 999);
@@ -33,18 +32,14 @@ export async function processUserSubmission(data: SubmissionData) {
   }
 
   const imageHash = getImageHash(reviewImageUrl);
-
-  // Duplicate Check
   const duplicateCheck = await checkDuplicateSubmission(name, email, eventId, imageHash);
   if (duplicateCheck.isDuplicate) {
     return { isDuplicate: true, reason: duplicateCheck.reason };
   }
 
-  // OCR
   const ocrResult = await extractReviewSimple(reviewImageUrl, name);
   const validation = validateSimple(ocrResult);
 
-  // Logging
   const initialLog = [
     {
       step: 'ocr_complete',
@@ -54,7 +49,6 @@ export async function processUserSubmission(data: SubmissionData) {
         reviewerName: ocrResult.reviewerName,
         starRating: ocrResult.starRating,
         nameMatched: validation.nameMatched,
-        analyzeStatus: ocrResult.analyzeResult?.status,
         reviewPreview: ocrResult.reviewText.substring(0, 100),
         scoreBreakdown: validation.scoreBreakdown,
       },
@@ -66,6 +60,7 @@ export async function processUserSubmission(data: SubmissionData) {
     data: {
       name,
       email: email.toLowerCase().trim(),
+      canonicalEmail: getCanonicalEmail(email),
       phone: phone || '',
       eventId,
       reviewImageUrl,
@@ -81,7 +76,6 @@ export async function processUserSubmission(data: SubmissionData) {
     }
   });
 
-  // Certificate generation
   if (validation.status === 'approved') {
     processSuccessfulCertificate({
       ...submission,

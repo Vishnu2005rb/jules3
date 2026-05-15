@@ -9,10 +9,6 @@ interface RateLimitStore {
 
 const store: RateLimitStore = {};
 
-/**
- * Simple in-memory rate limiter.
- * In production, use Redis (e.g., Upstash) for distributed rate limiting.
- */
 export function rateLimit(identifier: string, limit: number, windowMs: number) {
   const now = Date.now();
   const record = store[identifier];

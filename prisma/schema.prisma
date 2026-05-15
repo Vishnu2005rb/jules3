@@ -41,6 +41,7 @@ model UserSubmission {
   id                String       @id @default(cuid())
   name              String
   email             String
+  canonicalEmail    String?
   phone             String
   eventId           String
   event             Event        @relation(fields: [eventId], references: [id])
@@ -58,6 +59,7 @@ model UserSubmission {
   certificate       Certificate?
 
   @@index([email])
+  @@index([canonicalEmail])
   @@index([imageHash])
 }
 
@@ -75,4 +77,13 @@ model Admin {
   id       String @id @default(cuid())
   username String @unique
   password String
+}
+
+model RevokedToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([expiresAt])
 }

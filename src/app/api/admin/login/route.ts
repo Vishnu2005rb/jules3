@@ -3,29 +3,10 @@ import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { SignJWT } from 'jose';
 import { cookies } from 'next/headers';
-import { loginSchema } from '@/lib/validation/schemas';
-import { rateLimit, getIP } from '@/lib/rateLimit';
 
 export async function POST(req: Request) {
   try {
-    // Rate Limiting (5 login attempts per 15 minutes per IP)
-    const ip = getIP(req);
-    const limiter = rateLimit(`login_${ip}`, 5, 15 * 60 * 1000);
-
-    if (!limiter.success) {
-      return NextResponse.json({
-        error: 'Too many login attempts. Please try again later.'
-      }, { status: 429 });
-    }
-
-    const body = await req.json();
-    const validation = loginSchema.safeParse(body);
-
-    if (!validation.success) {
-      return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
-    }
-
-    const { username, password } = validation.data;
+    const { username, password } = await req.json();
 
     const admin = await prisma.admin.findUnique({
       where: { username },
@@ -41,15 +22,11 @@ export async function POST(req: Request) {
     }
 
     // Generate JWT
-    const secretValue = process.env.JWT_SECRET;
-    if (!secretValue) {
-      throw new Error('JWT_SECRET is not configured');
-    }
-    const secret = new TextEncoder().encode(secretValue);
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'hackathon-default-secret-key-2024');
     const token = await new SignJWT({ id: admin.id, username: admin.username })
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
-      .setExpirationTime('12h') // Reduced from 24h for better security
+      .setExpirationTime('24h')
       .sign(secret);
 
     // Set cookie
@@ -57,8 +34,8 @@ export async function POST(req: Request) {
     cookieStore.set('admin_token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict', // Changed from 'lax' for better CSRF protection
-      maxAge: 60 * 60 * 12, // 12 hours
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24, // 1 day
       path: '/',
     });
 

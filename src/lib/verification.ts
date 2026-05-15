@@ -6,19 +6,7 @@ export function getImageHash(base64Image: string): string {
 }
 
 /**
- * Production-grade duplicate detection.
- *
- * Rules (in order):
- * 1. Same name + same email + same event → duplicate (block)
- * 2. Same name + different email + same event → allow (different person, same name)
- * 3. Exact same image hash (any event) → duplicate (screenshot reuse)
- *
- * This means two people with the same name but different emails can both submit.
- * Only the exact same person (name + email) is blocked from submitting twice.
- */
-/**
- * Normalizes an email address to detect common evasion techniques like
- * plus-addressing (user+extra@gmail.com) and dots in the local part.
+ * Normalizes an email address to detect common evasion techniques.
  */
 export function getCanonicalEmail(email: string): string {
   const trimmed = email.toLowerCase().trim();
@@ -41,6 +29,17 @@ export function getCanonicalEmail(email: string): string {
   return trimmed;
 }
 
+/**
+ * Production-grade duplicate detection.
+ *
+ * Rules (in order):
+ * 1. Same name + same email + same event → duplicate (block)
+ * 2. Same name + different email + same event → allow (different person, same name)
+ * 3. Exact same image hash (any event) → duplicate (screenshot reuse)
+ *
+ * This means two people with the same name but different emails can both submit.
+ * Only the exact same person (name + email) is blocked from submitting twice.
+ */
 export async function checkDuplicateSubmission(
   name: string,
   email: string,
@@ -49,13 +48,15 @@ export async function checkDuplicateSubmission(
 ): Promise<{ isDuplicate: boolean; reason?: string }> {
   const normalizedEmail = email.toLowerCase().trim();
   const canonicalEmail = getCanonicalEmail(email);
-  const normalizedName  = name.trim().toLowerCase();
 
-  // Check 1: Same name AND same email for this event → definite duplicate
+  // Check 1: Same name AND (email OR canonicalEmail) for this event
   const samePersonSameEvent = await prisma.userSubmission.findFirst({
     where: {
       eventId,
-      email: normalizedEmail,
+      OR: [
+        { email: normalizedEmail },
+        { canonicalEmail: canonicalEmail }
+      ],
       name: { equals: name.trim(), mode: 'insensitive' },
     },
     select: { id: true, status: true },
@@ -67,19 +68,22 @@ export async function checkDuplicateSubmission(
     };
   }
 
-  // Check 2: Same email for this event (name might differ slightly — still same person)
-  // We use canonicalEmail matching here to catch variations of the same email
-  const allSubmissionsForEvent = await prisma.userSubmission.findMany({
-    where: { eventId },
-    select: { id: true, email: true },
+  // Check 2: Same email OR canonicalEmail for this event
+  const emailVariation = await prisma.userSubmission.findFirst({
+    where: {
+      eventId,
+      OR: [
+        { email: normalizedEmail },
+        { canonicalEmail: canonicalEmail }
+      ]
+    },
+    select: { id: true },
   });
-
-  const emailVariation = allSubmissionsForEvent.find(s => getCanonicalEmail(s.email) === canonicalEmail);
 
   if (emailVariation) {
     return {
       isDuplicate: true,
-      reason: 'This email address (or a variation of it) has already been used to submit a review for this event.',
+      reason: 'This email address has already been used to submit a review for this event.',
     };
   }
 
